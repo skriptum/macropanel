@@ -1,0 +1,65 @@
+# Conference Board
+
+```{r}
+library(tidyverse)
+library(readxl)
+```
+
+The dataset is taken from the Website of the Conference Board: https://data-central.conference-board.org/
+you need a (free) account to download the data. The excel sheet is placed without any modifications in the data/raw folder
+
+```{r}
+df_cb <- read_excel("../../data/raw/Conference_Board.xlsx")
+```
+
+Codes: 
+TOTHR = Total annual hours worked
+LP_L_g = Growth in labor productivity per person employed
+LP_H_g = Growth in labor productivity per hour worked
+TFPG = Total factor productivity growth
+
+```{r}
+df_clean <- df_cb %>% 
+  t() %>% # transpose and convert to tibble
+  as_tibble() %>%
+  # convert the messy column for the indicatr code and extract value
+  mutate(
+    attr = str_split(V5, "_", simplify = TRUE)[,1],
+    ISO3 = str_split(V5, "_", simplify = TRUE)[,2], #thank god the ISO3 is in there
+    indicator = str_sub(V5, start = 10)
+  ) %>%
+  filter(indicator %in% c("TOTHR", "LP_L_g", "LP_H_g", "TFPG")) %>% # keep only relevant indicators
+  select(ISO3, indicator, V7:V42) %>%
+  # put the years on x axis
+  pivot_longer(
+    cols = V7:V42,
+    names_to = "year",
+    values_to = "value"
+  ) %>%
+  # rename years
+  mutate(
+    year = as.integer(str_remove(year, "V")) + 1983
+  ) %>%
+  # make each indicator a separate column
+  pivot_wider(
+    names_from = indicator,
+    values_from = value
+  ) %>%
+  # clean up column names
+  reframe(
+    ISO3 = countrycode::countrycode(ISO3, origin = "iso3c", destination = "iso3c"), #useful for filtering out the regions that are not countries (e.g GLO = global)
+    total_hours_worked = TOTHR,
+    labor_productivity_person_growth = LP_L_g,
+    labor_productivity_hour_growth = LP_H_g,
+    total_factor_productivity_growth = TFPG
+  ) %>%
+  filter(is.na(ISO3) == FALSE) 
+```
+
+```{r}
+write_csv(df_clean, "../../data/processed/06_Conf_Board.csv")
+haven::write_dta(df_clean, "../../data/processed/06_Conf_Board.dta")
+```
+
+
+
