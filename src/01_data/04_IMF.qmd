@@ -1,0 +1,219 @@
+# IMF data
+
+```{r}
+# remotes::install_github("opensdmx/rsdmx")
+```
+
+```{r}
+library(tidyverse)
+library(haven)
+library(rsdmx)
+```
+
+
+## Fiscal Monitor 
+
+```{r}
+flowref <- 'FM'
+```
+
+```{r}
+dataset_FM <- as.data.frame(readSDMX(providerId = 'IMF_DATA',
+                                  resource = 'data',
+                                  flowRef = flowref,
+                                  ))
+```
+
+Clean the Data
+
+```{r}
+df_FM <- dataset_FM %>%
+  select(COUNTRY, INDICATOR, TIME_PERIOD, OBS_VALUE) %>%
+  pivot_wider(
+    names_from = INDICATOR,
+    values_from = OBS_VALUE
+  ) %>%
+  reframe(
+    ISO3 = COUNTRY,
+    year = TIME_PERIOD,
+    fiscal_balance_gdp = GNLB_S13_POGDP_PT,
+    primary_fiscal_balance_gdp = GPB_S13_POGDP_PT,
+    net_debt_gdp = G63N_S13_POGDP_PT,
+  )
+```
+
+Add description 
+
+```{r}
+desc_FM <- c(
+  fiscal_balance_gdp = "General government net lending/borrowing (% of GDP)",
+  primary_fiscal_balance_gdp = "General government primary net lending/borrowing (% of GDP)",
+  net_debt_gdp = "General government gross debt (% of GDP)"
+)
+common::labels(df_FM) <- desc_FM
+```
+
+Save it 
+
+```{r}
+write_csv(df_FM, "../../data/processed/04_Fiscal_monitor.csv")
+write_dta(df_FM, "../../data/processed/04_Fiscal_monitor.dta")
+```
+
+
+## Commodity Prices
+
+```{r}
+flowref <- "PCPS"
+key <- "PFOOD"
+```
+
+```{r}
+dataset_PCPS <- as.data.frame(readSDMX(providerId = 'IMF_DATA',
+                                  resource = 'data',
+                                  flowRef = flowref,
+                                  ))
+```
+
+```{r}
+df_PCPS <- dataset_PCPS %>%
+  filter(
+    FREQUENCY=="A",
+    DATA_TRANSFORMATION=="INDEX",
+    INDICATOR %in% c("PFOOD", "POILAPSP")
+    )  %>%
+  select(INDICATOR, TIME_PERIOD, OBS_VALUE) %>%
+  pivot_wider(
+    names_from = INDICATOR,
+    values_from = OBS_VALUE
+  ) %>%
+  reframe(
+    ISO3 = "World",
+    year = TIME_PERIOD,
+    food_price_index = PFOOD,
+    oil_price_index = POILAPSP,
+  )
+```
+
+```{r}
+desc_PCPS <- c(
+  food_price_index = "Food Price Index (2016=100)",
+  oil_price_index = "Oil Price Index (2016=100)"
+)
+
+common::labels(df_PCPS) <- desc_PCPS
+```
+
+
+```{r}
+write_csv(df_PCPS, "../../data/processed/04_Commodity_prices.csv")
+write_dta(df_PCPS, "../../data/processed/04_Commodity_prices.dta")
+```
+
+## Government Investment
+
+```{r}
+flowref <- "ICSD"
+```
+
+```{r}
+dataset_ICSD <- as.data.frame(readSDMX(providerId = 'IMF_DATA',
+                                  resource = 'data',
+                                  flowRef = flowref,
+                                  ))
+```
+
+```{r}
+df_ICSD <- dataset_ICSD %>%
+  filter(
+    INDICATOR %in% c("P51G_S13_Q_POGDP_PT", "P51G_PS_Q_POGDP_PT"), 
+    TIME_PERIOD >= 1990
+  ) %>%
+  select(COUNTRY, INDICATOR, TIME_PERIOD, OBS_VALUE) %>%
+  pivot_wider(
+    names_from = INDICATOR,
+    values_from = OBS_VALUE
+  ) %>%
+  reframe(
+    ISO3 = COUNTRY,
+    year = TIME_PERIOD,
+    government_investment_gdp = P51G_S13_Q_POGDP_PT,
+    private_sector_investment_gdp = P51G_PS_Q_POGDP_PT,
+  )
+  
+```
+
+```{r}
+desc_ICSD <- c(
+  government_investment_gdp = "General government gross fixed capital formation (% of GDP)",
+  private_sector_investment_gdp = "Private sector gross fixed capital formation (% of GDP)"
+)
+
+common::labels(df_ICSD) <- desc_ICSD
+```
+
+
+```{r}
+write_csv(df_ICSD, "../../data/processed/04_investment.csv")
+write_dta(df_ICSD, "../../data/processed/04_investment.dta")
+```
+
+## World Economic Outlook (WEO)
+
+```{r}
+flowref <- "WEO"
+```
+
+```{r}
+dataset_WEO <- as.data.frame(readSDMX(providerId = 'IMF_DATA',
+                                  resource = 'data',
+                                  flowRef = flowref,
+                                  ))
+```
+
+```{r}
+df_WEO <- dataset_WEO %>%
+  filter(
+    INDICATOR %in% c("NGAP_NPGDP"),
+    TIME_PERIOD >= 1990
+  ) %>%
+  select(COUNTRY, INDICATOR, TIME_PERIOD, OBS_VALUE) %>%
+  pivot_wider(
+    names_from = INDICATOR,
+    values_from = OBS_VALUE
+  ) %>%
+  reframe(
+    ISO3 = COUNTRY,
+    year = TIME_PERIOD,
+    output_gap_pct = NGAP_NPGDP,
+  )
+```
+
+```{r}
+desc_WEO <- c(
+  output_gap_pct = "Output gap (% of potential GDP)"
+)
+
+common::labels(df_WEO) <- desc_WEO
+```
+
+```{r}
+write_csv(df_WEO, "../../data/processed/04_WEO.csv")
+write_dta(df_WEO, "../../data/processed/04_WEO.dta")
+```
+
+## Combining all IMF data
+
+```{r}
+imf_data <- df_FM %>%
+  left_join(df_ICSD, by = c("ISO3", "year")) %>%
+  left_join(df_WEO, by = c("ISO3", "year")) %>%
+  arrange(ISO3, year) %>%
+  filter(year <= 2025)
+```
+
+```{r}
+write_csv(imf_data, "../../data/processed/04_IMF_data.csv")
+write_dta(imf_data, "../../data/processed/04_IMF_data.dta")
+```
+
