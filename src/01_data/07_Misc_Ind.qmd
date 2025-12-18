@@ -1,0 +1,158 @@
+# Misc Indices
+
+```{r}
+library(tidyverse)
+library(haven)
+```
+
+
+## OEC
+
+
+```{r}
+library(jsonlite)
+```
+
+
+```{r}
+raw_oec <- fromJSON("https://api-v2.oec.world/tesseract/data.jsonrecords?cube=complexity_eci_a_hs96_hs6&drilldowns=Country,ECI+Rank,Year&measures=ECI&parents=true&locale=en")
+```
+
+```{r}
+df_oec <- raw_oec$data %>%
+  select(Country, Year, ECI) %>%
+  reframe(
+    ISO3 = countrycode::countrycode(Country, "country.name", "iso3c"),
+    year = as.integer(Year),
+    eci = as.numeric(ECI)
+  )
+head(df_oec)
+```
+
+```{r}
+write_csv(df_oec, "../../data/processed/07_OEC.csv")
+write_dta(df_oec, "../../data/processed/07_OEC.dta")
+```
+
+## Freedom House
+
+```{r}
+library(readxl)
+```
+
+Data downloaded from https://freedomhouse.org/report/freedom-world#Data in Dec 2025
+
+```{r}
+excel_sheets("../../data/raw/Country_and_Territory_Ratings_and_Statuses_FIW_1973-2025_0.xlsx")
+```
+
+```{r}
+raw_freedom <- read_excel(
+  "../../data/raw/Country_and_Territory_Ratings_and_Statuses_FIW_1973-2025_0.xlsx", 
+  skip = 3, sheet="Country Ratings, Statuses ", na=c("", "NA", "..", "-"),
+  col_names = c("country", rep(1973:2024, each = 3)), .name_repair="unique_quiet"
+  )
+```
+
+```{r}
+df_freedom <- raw_freedom %>%
+  # pivot longer
+  mutate(across(-country, as.character)) %>%
+  pivot_longer(
+    cols = -country,
+    names_to = "col",
+    values_to = "value"
+  ) %>%
+  reframe(
+    ISO3 = countrycode::countrycode(country, "country.name", "iso3c"),
+    year = str_extract(col, "\\d{4}"),
+    type = c("FHI_status", "FHI_pr", "FHI_cl")[as.integer(factor(col)) %% 3 +1],
+    value,
+  ) %>%
+  filter(
+    year >= 1990,
+    is.na(ISO3) == FALSE,
+    is.na(value) == FALSE
+  ) %>%
+  pivot_wider(
+    names_from = type,
+    values_from = value
+  ) 
+head(df_freedom)  
+```
+
+```{r}
+write_csv(df_freedom, "../../data/processed/07_Freedom_House.csv")
+write_dta(df_freedom, "../../data/processed/07_Freedom_House.dta")
+```
+
+## Corruption Perception Index
+
+```{r}
+library(readxl)
+```
+
+```{r}
+excel_sheets("../../data/raw/CPI2024.xlsx")
+```
+
+```{r}
+raw_cpi <- read_excel("../../data/raw/CPI2024.xlsx", skip=2, sheet="CPI Historical")
+```
+
+```{r}
+df_cpi <- raw_cpi %>%
+  select(ISO3,Year, `CPI score`) %>%
+  reframe(
+    ISO3,
+    year = as.integer(Year),
+    cpi= as.numeric(`CPI score`)
+  )
+```
+
+```{r}
+desc_cpi <- c(
+  cpi = "Corruption Perception Index (CPI) score"
+)
+
+common::labels(df_cpi) <- desc_cpi
+```
+
+```{r}
+write_csv(df_cpi, "../../data/processed/07_CPI.csv")
+write_dta(df_cpi, "../../data/processed/07_CPI.dta")
+```
+
+## Human Development Index
+
+```{r}
+library(readxl)
+```
+
+
+downloaded by selecting a custom table at: https://hdr.undp.org/data-center/documentation-and-downloads
+```{r}
+raw_HDI <- read_excel("../../data/raw/hdr-data.xlsx")
+```
+
+```{r}
+df_HDI <- raw_HDI %>%
+  select(countryIsoCode, year, value) %>%
+  reframe(
+    ISO3 = countryIsoCode,
+    year = as.integer(year),
+    hdi = as.numeric(value)
+  ) 
+head(df_HDI)
+```
+```{r}
+common::labels(df_HDI) <- c(
+  hdi = "Human Development Index (HDI)"
+)
+```
+
+```{r}
+write_csv(df_HDI, "../../data/processed/07_HDI.csv")
+write_dta(df_HDI, "../../data/processed/07_HDI.dta")
+```
+
