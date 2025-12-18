@@ -1,0 +1,81 @@
+# Commodity Prices
+
+- IMF Primary Commodity Price System (PCPS) only starts in 2003
+- need to use World Bank pink sheet data
+
+Excel download from WB commodites page: https://www.worldbank.org/en/research/commodity-markets (annual data)
+
+
+```{r}
+library(readxl)
+library(tidyverse)
+```
+
+```{r}
+excel_sheets("../../data/raw/CMO-Historical-Data-Annual.xlsx")
+```
+
+
+```{r}
+raw_pink <- read_excel("../../data/raw/CMO-Historical-Data-Annual.xlsx", sheet="Annual Prices (Nominal)", skip=8)
+```
+
+```{r}
+df_pink <- raw_pink %>%
+  select(
+    `...1`, # year
+    # --- Agricultural Commodities
+    COCOA,       
+    COFFEE_ARABIC, # Coffee, Arabica, $/mt
+    COFFEE_ROBUS, # Coffee, Robusta, $/mt
+    TEA_AVG,      # Tea, Average, $/mt
+    COCONUT_OIL,  
+    PALM_OIL,      
+    SOYBEANS,      
+    BARLEY,         
+    MAIZE,          
+    RICE_05,      # Rice, 050% B, $/mt
+    WHEAT_US_HRW, # Wheat, US HRW, $/mt (HRW larger volume)
+    BANANA_US,   # Bananas, $/mt
+    ORANGE,
+    BEEF,
+    CHICKEN,
+    LAMB, 
+    SUGAR_WLD, # Sugar, world, $/mt
+    TOBAC_US, # Tobacco, US, $/mt
+    PLYWOOD,   # Plywood, $/m3
+    COTTON_A_INDX, # Cotton, A Index, $/mt
+    RUBBER1_MYSG, # Rubber, TSR20, $/mt (benchmark rubber)
+    # --- Non-Agricultural Commodities
+    CRUDE_PETRO, # Crude Oil, average $/bbl
+    NGAS_EUR,   # Natural Gas, Europe, $/mmbtu (EUR imports more = more reflective of global prices)
+    COAL_AUS,   # Coal, Australia, $/mt
+    PHOSROCK, # Phosphate Rock, $/mt
+    DAP, # Diammonium Phosphate
+    TSP, # Triple Super Phosphate
+    UREA_EE_BULK, # Urea nitrogen fertilizer, $/mt
+    POTASH,
+    ALUMINUM,
+    IRON_ORE, # Iron Ore, CFR spot, $/mt
+    COPPER,
+    LEAD,
+    Tin,
+    NICKEL,
+    Zinc,
+    GOLD,
+    PLATINUM,
+    SILVER
+  ) %>%  
+  rename(
+    year = `...1` ,
+    TIN = Tin,
+    ZINC = Zinc
+    ) %>%
+  filter(year >= 1990) 
+
+```
+
+```{r}
+write_csv(df_pink, "../../data/processed/_01_Commodity_Prices.csv")
+```
+

@@ -1,0 +1,163 @@
+# Creating the index
+
+```{r}
+library(tidyverse)
+library(globalmacrodata)
+```
+
+## Read the Data
+
+```{r}
+df_prices <- read_csv("../../data/processed/_01_Commodity_Prices.csv")
+# df_trade <- read_csv("../../data/processed/_02_Trade.csv")
+df_trade <- read_csv("../../data/processed/_02_Trade_total.csv")
+```
+
+## Merging
+
+merging
+```{r}
+df_prices <- df_prices %>%
+  # make all numeric
+  mutate(across(-year, as.numeric)) %>%
+  pivot_longer(-year, names_to = "commodity", values_to = "price") 
+```
+
+```{r}
+df <- df_trade %>%
+  left_join(df_prices, by = c("commodity", "year"))  %>%
+  filter(commodity != "BARLEY") %>% # missing price data after 2021 
+  select(
+    country_iso3,
+    year,
+    commodity,
+    # value = export_value_usd,
+    value = trade_value_usd,
+    # quantity = export_quantity_mt,
+    quantity = trade_quantity_mt,
+    price
+  ) 
+```
+
+value = in thousands current USD
+quantity = metric tons
+
+which years have the most data = 2013
+
+```{r}
+df %>%
+  group_by(year) %>%
+  summarize(
+    n_obs = n(),
+    n_countries = n_distinct(country_iso3),
+  ) %>%
+  arrange(desc(n_obs))
+```
+
+
+## Weighting
+
+Problem with using 1995 as base year = many countries have no net exports for that year, but start with exports later
+=> use 2013 as base year (has the most observations)
+
+```{r}
+base_year <- 1995
+```
+
+Calculate weights based on export value in base year
+
+```{r}
+df_weights <- df %>%
+  filter(year == base_year) %>%
+  group_by(country_iso3) %>%
+  reframe(
+    # weight based on export value
+    commodity,
+    weight_ict = (value / sum(value, na.rm = TRUE))
+    ) 
+```
+
+Check weights sum to 1
+```{r}
+df_weights %>%
+  group_by(country_iso3) %>%
+  summarize(
+    total_weight = sum(weight_ict, na.rm = TRUE)
+  ) %>%
+  arrange(desc(total_weight)) 
+```
+
+## Index Calculation
+
+```{r}
+df_index_raw <- df %>%
+  left_join(df_weights, by = c("country_iso3", "commodity")) %>%
+  group_by(country_iso3, year) %>%
+  reframe(
+    index = prod(price ^ weight_ict, na.rm = T)
+  ) 
+```
+
+```{r}
+df_index_raw %>%
+  filter(country_iso3 == "DEU") %>%
+  ggplot(aes(x = year, y = index)) +
+    geom_line() 
+```
+
+## GDP weighted
+
+get GDP from globalmacrodatabase
+
+```{r}
+df_gmd <-  gmd(version = "2025_09")
+```
+
+```{r}
+df_gdp <- df_gmd %>%
+  select(ISO3, year, gdp = nGDP_USD) %>% #nominal GDP in USD
+  filter(year == base_year)
+```
+
+```{r}
+df_gdp_weight <- df %>%
+  filter(year == base_year) %>%
+  group_by(country_iso3) %>%
+  reframe(
+    gdp = df_gdp$gdp[match(country_iso3, df_gdp$ISO3)] * 1000, # convert to current USD
+    commodity_weight = value / gdp,
+    gdp_weight = sum(commodity_weight, na.rm = TRUE)
+  ) %>%
+  select(country_iso3, gdp_weight) %>%
+  distinct()
+
+df_gdp_weight %>%
+  arrange(desc(gdp_weight))
+```
+
+unrealisitc countries: VEN, SLE, LBR, CHE
+
+```{r}
+df_index_gdp_weighted <- df_index_raw %>%
+  left_join(df_gdp_weight, by = "country_iso3") %>%
+  # filter(!country_iso3 %in% c("VEN", "SLE", "LBR")) %>%
+  group_by(country_iso3, year) %>%
+  reframe(
+    index_gdp_weighted = gdp_weight * index 
+  )
+```
+
+```{r}
+df_index_gdp_weighted %>%
+  filter(
+    country_iso3 %in% c(
+      # make the plot for 30 large economies
+      "USA", "CHN", "JPN", "DEU", "IND", "GBR", "FRA", "ITA", "BRA", "CAN",
+      "RUS", "KOR", "ESP", "AUS", "MEX", "IDN", "NLD", "SAU", "TUR",
+      "ARG", "SWE", "POL", "BEL", "THA", "NGA", "AUT", "IRN", "NOR", "ISR"
+    )
+  ) %>%
+  ggplot(aes(x = year, y = index_gdp_weighted, color=country_iso3)) +
+    geom_line()
+```
+

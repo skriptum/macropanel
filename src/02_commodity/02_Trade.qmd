@@ -1,0 +1,219 @@
+# Trade Data
+
+from UNCTAD
+
+```{r}
+library(tidyverse)
+```
+
+
+Code Lookup: https://www.tariffnumber.com
+```{r}
+HS_codes <- c(
+  "COCOA" = 1801,
+  "COFFEE_ARABIC" = 0901,
+  "TEA_AVG" = 0902,
+  "COCONUT_OIL" = 1513,
+  "PALM_OIL" = 1511,
+  "SOYBEANS" = 1201,
+  "BARLEY" = 1003,
+  "MAIZE" = 1005,
+  "RICE_05" = 1006,
+  "WHEAT_US_HRW" = 1001,
+  "BANANA_US" = 0803,
+  "ORANGE" = 0805,
+  "BEEF" = 0201,
+  "CHICKEN" = 0207,
+  "LAMB" = 0204,
+  "SUGAR_WLD" = 1701,
+  "TOBAC_US" = 2401,
+  "PLYWOOD" = 4412,
+  "COTTON_A_INDX" = 5201,
+  "RUBBER1_MYSG" = 4001,
+  "CRUDE_PETRO" = 2709,
+  "NGAS_EUR" = 2711,
+  "COAL_AUS" = 2701,
+  "PHOSROCK" = 2510,
+  "DAP" = 3105,
+  "TSP" = 2835,
+  "UREA_EE_BULK" = 3102,
+  "POTASH" = 3104,
+  "ALUMINUM" = 7601,
+  "IRON_ORE" = 2601,
+  "COPPER" = 7403,
+  "LEAD" = 7801,
+  "TIN" = 8001, 
+  "NICKEL" = 7502,
+  "ZINC" = 7901,
+  "GOLD" = 7108,
+  "PLATINUM" = 7110,
+  "SILVER" = 7106
+)
+```
+
+## Comtrade (trough CEPII)
+
+Using the BACI CSV
+
+- k = category
+- i = exporter
+- j = importer
+- v = trade value (USD)
+- q = quantity (mt)
+
+```{r}
+country_names <- read_csv("../../data/raw/BACI_HS92_V202501/country_codes_V202501.csv")
+product_names <- read_csv("../../data/raw/BACI_HS92_V202501/product_codes_HS92_V202501.csv")
+```
+## Testing
+
+```{r}
+raw_1995 <- read_csv("../../data/raw/BACI_HS92_V202501/BACI_HS92_Y1995_V202501.csv")
+```
+
+```{r}
+df_1995_exports <- raw_1995 %>%
+  # add ISO country names
+  left_join(country_names, by = c("i" = "country_code")) %>%
+  # make from HS6 to HS4
+  mutate(HS4 = str_sub(k, 1, 4)) %>%
+  group_by(country_iso3, HS4) %>% # aggregate to HS4 and all countries!
+  reframe(
+    export_value_usd = sum(v, na.rm = TRUE),
+    export_quantity_mt = sum(q, na.rm = TRUE),
+  ) %>%
+  filter(
+    HS4 %in% HS_codes
+  ) %>%
+  # add names of commodities
+  ungroup() %>%
+  mutate(
+    commodity = names(HS_codes)[match(as.integer(HS4), HS_codes)]
+  )
+```
+
+
+build the same for imports
+
+```{r}
+df_1995_imports <- raw_1995 %>%
+  left_join(country_names, by = c("j" = "country_code")) %>%
+  mutate(HS4 = str_sub(k, 1, 4)) %>%
+  group_by(country_iso3, HS4) %>%
+  reframe(
+    import_value_usd = sum(v, na.rm = TRUE),
+    import_quantity_mt = sum(q, na.rm = TRUE),
+  ) %>%
+  filter(
+    HS4 %in% HS_codes
+  ) %>%
+  ungroup() %>%
+  mutate(
+    commodity = names(HS_codes)[match(as.integer(HS4), HS_codes)]
+  )
+```
+
+merge and compare 
+
+```{r}
+df_1995 <- df_1995_exports %>%
+  left_join(df_1995_imports, by = c("country_iso3", "HS4", "commodity"))  %>%
+  filter(export_value_usd > import_value_usd) %>% # keep only net exporters
+  select(country_iso3, commodity, export_value_usd, export_quantity_mt)
+```
+
+## Loop Net Exports
+
+```{r, message=FALSE}
+years <- 1995:2023
+
+baci_hs4_net <- map_dfr(years, function(yr) {
+  print(yr)
+  
+  # Read raw BACI HS92 data for the year
+  file_path <- paste0("../../data/raw/BACI_HS92_V202501/BACI_HS92_Y", yr, "_V202501.csv")
+  raw_data <- read_csv(file_path, col_types = cols())
+  
+  # Exports: partner = j not used
+  df_exports <- raw_data %>%
+    left_join(country_names, by = c("i" = "country_code")) %>%
+    mutate(HS4 = str_sub(k, 1, 4)) %>%
+    group_by(country_iso3, HS4) %>%
+    reframe(
+      export_value_usd = sum(v, na.rm = TRUE),
+      export_quantity_mt = sum(q, na.rm = TRUE)
+    ) %>%
+    filter(HS4 %in% HS_codes) %>%
+    ungroup() %>%
+    mutate(
+      commodity = names(HS_codes)[match(as.integer(HS4), HS_codes)]
+    )
+  
+  # Imports: reporter = j
+  df_imports <- raw_data %>%
+    left_join(country_names, by = c("j" = "country_code")) %>%
+    mutate(HS4 = str_sub(k, 1, 4)) %>%
+    group_by(country_iso3, HS4) %>%
+    reframe(
+      import_value_usd = sum(v, na.rm = TRUE),
+      import_quantity_mt = sum(q, na.rm = TRUE)
+    ) %>%
+    filter(HS4 %in% HS_codes) %>%
+    ungroup() %>%
+    mutate(
+      commodity = names(HS_codes)[match(as.integer(HS4), HS_codes)]
+    )
+  
+  # Merge exports and imports, keep net exporters only
+  df_net <- df_exports %>%
+    left_join(df_imports, by = c("country_iso3", "HS4", "commodity")) %>%
+    filter(export_value_usd > import_value_usd) %>%
+    select(country_iso3, commodity, HS4, export_value_usd, export_quantity_mt) %>%
+    mutate(year = yr)
+  
+  return(df_net)
+})
+```
+
+Save the data
+
+```{r}
+write_csv(baci_hs4_net, "../../data/processed/_02_Trade.csv")
+```
+
+## Loop without netting
+
+```{r, message=FALSE}
+years <- 1995:2023
+
+# Loop over years and process each CSV
+baci_hs4 <- map_dfr(years, function(yr) {
+  print(yr)
+  
+  # Read raw BACI HS92 data for the year
+  file_path <- paste0("../../data/raw/BACI_HS92_V202501/BACI_HS92_Y", yr, "_V202501.csv")
+  raw_data <- read_csv(file_path)
+  
+  # Process: add country names, convert HS6 → HS4, aggregate
+  df <- raw_data %>%
+    left_join(country_names, by = c("i" = "country_code")) %>%
+    mutate(HS4 = str_sub(k, 1, 4)) %>%
+    group_by(country_iso3, HS4) %>%
+    reframe(
+      trade_value_usd = sum(v, na.rm = TRUE),
+      trade_quantity_mt = sum(q, na.rm = TRUE)
+    ) %>%
+    filter(HS4 %in% HS_codes) %>%
+    mutate(
+      year = yr,
+      commodity = names(HS_codes)[match(as.integer(HS4), HS_codes)]
+      )
+  
+  return(df)
+})
+```
+
+```{r}
+write_csv(baci_hs4, "../../data/processed/_02_Trade_total.csv")
+```
+
