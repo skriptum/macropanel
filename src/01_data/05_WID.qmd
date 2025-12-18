@@ -1,0 +1,81 @@
+# World Inequality Database (WID)
+
+```{r}
+# devtools::install_github("world-inequality-database/wid-r-tool")
+```
+
+
+```{r}
+library(tidyverse)
+library(haven)
+library(wid)
+```
+
+## Getting the Data
+
+```{r}
+?download_wid
+```
+
+```{r}
+gini <- download_wid(
+  areas = "all",
+  indicators =c("gptinc"),
+  years = 1990:2025,
+  verbose = TRUE,
+  ages=999,
+  pop="j",
+)
+```
+
+```{r}
+gini <- gini %>%
+  filter(!str_detect(country, "-")) %>%
+  select(-variable) %>%
+  reframe(
+    ISO = countrycode::countrycode(country, "iso2c", "iso3c"),
+    year,
+    gini = value
+    ) 
+```
+
+
+```{r}
+income_shares <- download_wid(
+  areas = "all",
+  indicators =c("sptinc"),
+  ages=992,
+  perc=c("p0p50","p90p100"),
+  years = 1990:2025,
+  verbose = TRUE,
+  pop="j"
+)
+```
+```{r}
+income_shares <- income_shares %>%
+  # country does not contain "-"
+  filter(!str_detect(country, "-")) %>%
+  pivot_wider(names_from = percentile, values_from = value) %>%
+  select(-variable) %>%
+  reframe(
+    ISO = countrycode::countrycode(country, "iso2c", "iso3c"),
+    year,
+    income_share_b50 = p0p50,
+    income_share_t10 = p90p100,
+    share_ratio = p90p100 / p0p50
+    ) 
+```
+
+```{r}
+# merge
+df_inequal <- gini %>%
+  filter(is.na(ISO) == FALSE) %>%
+  left_join(income_shares, by = c("ISO", "year"))
+```
+## Save
+
+```{r}
+write_dta(df_inequal, "../../data/processed/05_WID.dta")
+write_csv(df_inequal, "../../data/processed/05_WID.csv")
+```
+
