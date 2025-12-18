@@ -1,0 +1,104 @@
+# WESP Codes to Rest
+
+```{r}
+library(readxl)
+library(tidyverse)
+library(haven)
+```
+
+```{r}
+df_regions <- read_excel("../../data/raw/Regions.xlsx")
+```
+
+```{r}
+df_regions <- df_regions %>%
+  filter(
+    Group == "0"
+  ) %>%
+  reframe(
+    ISO3 = ISO,
+    country = `Full country name`,
+    short_country = `Short country name`,
+    status = Development_status,
+    wesp_region = `Region (WESP Annex)`,
+    wesp_subregion = `Subregion (WESP Annex)`
+  ) 
+```
+
+External Data for LDC Status (from [FAO](https://data.apps.fao.org/catalog/dataset/special-country-groups))
+```{r}
+df_LDC <- read_csv("https://api.data.apps.fao.org/api/v2/bigquery?sql_url=https://data.apps.fao.org/catalog/dataset/0cfacf8b-b681-48de-9743-a3b41be0b026/resource/ef13d328-2e4d-4a46-b0ea-d3100bbd9065/download/least-developed-countries-query.sql") %>%
+  select(m49, LDC) %>%
+  mutate(m49 = as.character(m49))
+```
+same for LLDC status
+
+```{r}
+df_LLDC <- read_csv("https://api.data.apps.fao.org/api/v2/bigquery?sql_url=https://data.apps.fao.org/catalog/dataset/0cfacf8b-b681-48de-9743-a3b41be0b026/resource/7001b01e-b27f-4813-a147-8ab98239d83e/download/landlocked-developing-countries-query.sql") %>%
+  select(m49, LLDC) %>%
+  mutate(m49 = as.character(m49)) 
+```
+
+and SIDS 
+
+```{r}
+df_SIDS <- read_csv("https://api.data.apps.fao.org/api/v2/bigquery?sql_url=https://data.apps.fao.org/catalog/dataset/0cfacf8b-b681-48de-9743-a3b41be0b026/resource/70e7df5f-7e28-4b63-8ab9-70c383bd3a75/download/small-island-developing-states-query.sql") %>%
+  select(m49, SIDS) %>%
+  mutate(m49 = as.character(m49))
+```
+
+
+External Data for coherent region classification
+
+```{r}
+df_classification <- read_csv("https://raw.githubusercontent.com/lukes/ISO-3166-Countries-with-Regional-Codes/refs/heads/master/all/all.csv") %>%
+  select(`alpha-3`, `country-code`) # region, `sub-region`,`intermediate-region` not included
+```
+
+
+```{r}
+df <- df_regions %>%
+  left_join(df_classification, by = c("ISO3" = "alpha-3")) %>%
+  rename(
+    country_code = `country-code`,
+    # region = region,
+    # sub_region = `sub-region`,
+    # intermediate_region = `intermediate-region`
+  ) %>%
+  left_join(df_LDC, by = c("country_code" = "m49")) %>%
+  left_join(df_LLDC, by = c("country_code" = "m49")) %>%
+  left_join(df_SIDS, by = c("country_code" = "m49")) %>%
+  # if LDF = "Yes" make 1, not make 0
+  mutate(
+    LDC = ifelse(is.na(LDC), 0,1),
+    LLDC = ifelse(is.na(LLDC),0,1),
+    SIDS = ifelse(is.na(SIDS),0,1)
+  ) 
+```
+
+Add descriptions to column names
+
+```{r}
+desc <- c(
+  ISO3 = "ISO 3166-1 alpha-3 country code",
+  country = "Full country name",
+  short_country = "Short country name",
+  status = "Development status as per WESP Annex",
+  wesp_region = "Region as per WESP Annex",
+  wesp_subregion = "Subregion as per WESP Annex",
+  country_code = "UN M49 country code",
+  LDC = "Least Developed Country dummy",
+  LLDC = "Landlocked Developing Country dummy",
+  SIDS = "Small Island Developing States dummy"
+)
+
+common::labels(df) <- desc
+```
+
+
+```{r}
+write_csv(df, "../../data/processed/01_WESP.csv") # for ref
+write_dta(df, "../../data/processed/01_WESP.dta") # for further analysis
+```
+
+
