@@ -1,3 +1,7 @@
 .DS_Store
 .vscode/
 panel.code-workspace
+.Rproj.user
+data/raw/*
+data/.DS_Store
+
