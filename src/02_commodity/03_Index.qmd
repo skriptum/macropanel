@@ -16,6 +16,7 @@ df_trade <- read_csv("../../data/processed/_02_Trade_total.csv")
 ## Merging
 
 merging
+
 ```{r}
 df_prices <- df_prices %>%
   # make all numeric
@@ -66,6 +67,10 @@ base_year <- 1995
 
 Calculate weights based on export value in base year
 
+$$
+W_{ic} = \frac{x_{ci}}{\sum x_{ci}}
+$$
+
 ```{r}
 df_weights <- df %>%
   filter(year == base_year) %>%
@@ -89,6 +94,10 @@ df_weights %>%
 
 ## Index Calculation
 
+$$
+P_{ct} = \prod_i p_{it}^{W_{ci}}
+$$
+
 ```{r}
 df_index_raw <- df %>%
   left_join(df_weights, by = c("country_iso3", "commodity")) %>%
@@ -106,6 +115,10 @@ df_index_raw %>%
 ```
 
 ## GDP weighted
+
+$$
+x_{i} = \frac{\sum x_{ci}}{GDP_{1990}} 
+$$
 
 get GDP from globalmacrodatabase
 
@@ -137,6 +150,10 @@ df_gdp_weight %>%
 
 unrealisitc countries: VEN, SLE, LBR, CHE
 
+$$
+P_{xct} = x_i * P^{real}_{ct}
+$$
+
 ```{r}
 df_index_gdp_weighted <- df_index_raw %>%
   left_join(df_gdp_weight, by = "country_iso3") %>%
@@ -146,6 +163,8 @@ df_index_gdp_weighted <- df_index_raw %>%
     index_gdp_weighted = gdp_weight * index 
   )
 ```
+
+## Plot
 
 ```{r}
 df_index_gdp_weighted %>%
