@@ -1,0 +1,43 @@
+# 02 Global Macro Database
+
+Downloading the dataset from [global macro database](https://www.globalmacrodata.com/), which covers a wide range of macroeconomic indicators across various countries, sourced from IMF, WB etc
+
+```{r}
+# install.packages("devtools")
+# devtools::install_github("KMueller-Lab/Global-Macro-Database-R")
+```
+
+```{r}
+library(tidyverse)
+library(globalmacrodata)
+```
+
+## Data
+
+```{r}
+gmd <- gmd(version = "2025_09")
+```
+
+## Selection
+
+```{r}
+df_f <- gmd %>%
+  select(
+    ISO3, year, CPI, infl, cbrate, USDfx, REER, HPI, unemp
+  ) %>%
+  filter(
+    year >= 1990,
+    year <= 2025,
+  ) %>%
+  rename(
+    
+  )
+```
+
+## Save
+
+```{r}
+write_csv(df_f, "../../data/processed/02_GMD.csv")
+write_dta(df_f, "../../data/processed/02_GMD.dta")
+```
+

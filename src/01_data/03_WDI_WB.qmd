@@ -1,0 +1,145 @@
+# World Development Indicators by the World Bank
+
+Installing the WDI R package
+```{r}
+#install.packages("WDI")
+```
+
+
+```{r}
+library(tidyverse)
+library(haven)
+library(WDI)
+```
+
+## Data
+Online list of current indicators: https://data.worldbank.org/indicator?tab=all
+
+
+```{r}
+indicator_list <- c(
+  # --- Trade
+  "NE.EXP.GNFS.ZS", # Exports of goods and services (% of GDP),
+  "NE.EXP.GNFS.CD",  # Exports of goods and services (current US$
+  "NE.IMP.GNFS.ZS",  # Imports of goods and services (% of GDP),
+  "NE.IMP.GNFS.CD",   # Imports of goods and services (current US$
+  # ---- Investment
+  "BM.KLT.DINV.WD.GD.ZS", # Foreign direct investment, net outflows (% of GDP)
+  "BX.KLT.DINV.WD.GD.ZS" , # Foreign direct investment, net inflows (% of GDP)
+  "NE.GDI.TOTL.ZS", # Gross capital formation (% of GDP)
+  "NE.GDI.FTOT.ZS",  # Gross fixed capital formation (% of GDP)
+  "NE.GDI.FPRV.ZS", # Gross fixed capital formation by private sector (% of GDP)
+  "GB.XPD.RSDV.GD.ZS",  # Research and development expenditure (% of GDP)
+  "SP.POP.SCIE.RD.P6",  # Researchers in R&D (per million people),
+  # --- Poverty
+  "SI.POV.MPUN", # UNDP Multidimensional poverty (% of population)
+  "SI.POV.MPWB", # World Bank Multidimensional poverty  (% of population)
+  "SI.POV.NAHC", # Poverty headcount ratio at national poverty lines (% of population)
+  "SI.POV.DDAY", # Poverty headcount ratio at $2.15 a day (2017 PPP) (% of population)
+  # --- Debt
+  "GC.NLD.TOTL.GD.ZS", # Fiscal balance (% of GDP)
+  "GC.XPN.INTP.ZS", # Interest payments (% of expense)
+  # --- Miscellaneous
+  "DT.ODA.ODAT.GN.ZS",  # Net ODA received (% of GNI)
+  "SP.DYN.LE00.IN", # Life expectancy at birth, total (years)
+  "SE.PRM.ENRR", # School enrollment, primary (% gross)
+  "BX.TRF.PWKR.DT.GD.ZS", # Personal remittances, received (% of GDP)
+  "SP.POP.1564.TO.ZS" # Population ages 15-64 (% of total population)
+)
+```
+
+Raw CSV downloaded from Bulk exports on https://databank.worldbank.org/data/download/WDI_CSV.zip
+
+```{r}
+df_raw <- read_csv("../../data/raw/WDI.csv")
+```
+
+```{r}
+df_clean <- df_raw %>%
+  mutate(ISO3 = countrycode::countrycode(`Country Name`, origin = "country.name", destination = "iso3c")) %>%
+  filter(
+    `Indicator Code` %in% indicator_list,
+    is.na(ISO3) == FALSE
+    ) %>%
+  pivot_longer(
+    cols = starts_with("19") | starts_with("20"),
+    names_to = "year",
+    values_to = "value"
+    ) %>%
+  select(-`Country Name`, -`Country Code`, -`Indicator Name`) %>%
+  pivot_wider(
+    names_from = `Indicator Code`,
+    values_from = value
+    ) %>%
+  filter(year >= 1990) 
+```
+
+
+
+```{r}
+df_clean <- df_clean %>%
+  rename(
+    exports_gdp = NE.EXP.GNFS.ZS,
+    exports_usd = NE.EXP.GNFS.CD,
+    imports_gdp = NE.IMP.GNFS.ZS,
+    imports_usd = NE.IMP.GNFS.CD,
+    fdi_out_gdp = BM.KLT.DINV.WD.GD.ZS,
+    fdi_in_gdp = BX.KLT.DINV.WD.GD.ZS,
+    gross_CF_gdp = NE.GDI.TOTL.ZS,
+    gross_fixed_CF_gdp = NE.GDI.FTOT.ZS,
+    gross_fixed_CF_private_gdp = NE.GDI.FPRV.ZS,
+    rnd_gdp = GB.XPD.RSDV.GD.ZS,
+    researchers_per_million = SP.POP.SCIE.RD.P6,
+    un_multidim_pov = SI.POV.MPUN,
+    wb_multidim_pov = SI.POV.MPWB,
+    pov_national = SI.POV.NAHC,
+    pov_international = SI.POV.DDAY,
+    oda_gni = DT.ODA.ODAT.GN.ZS,
+    life_expectancy = SP.DYN.LE00.IN,
+    school_enrollment_primary = SE.PRM.ENRR,
+    remittances_gdp = BX.TRF.PWKR.DT.GD.ZS,
+    fiscal_balance_gdp = GC.NLD.TOTL.GD.ZS,
+    interest_payments = GC.XPN.INTP.ZS,
+    working_age_pop_pct = SP.POP.1564.TO.ZS
+    ) 
+```
+
+add description to columns
+
+```{r}
+desc <- c(
+  exports_gdp = "Exports of goods and services (% of GDP)",
+  exports_usd = "Exports of goods and services (current US$)",
+  imports_gdp = "Imports of goods and services (% of GDP)",
+  imports_usd = "Imports of goods and services (current US$)",
+  fdi_out_gdp = "Foreign direct investment, net outflows (% of GDP)",
+  fdi_in_gdp = "Foreign direct investment, net inflows (% of GDP)",
+  gross_CF_gdp = "Gross capital formation (% of GDP)",
+  gross_fixed_CF_gdp = "Gross fixed capital formation (% of GDP)",
+  gross_fixed_CF_private_gdp = "Gross fixed capital formation by private sector (% of GDP)",
+  rnd_gdp = "Research and development expenditure (% of GDP)",
+  researchers_per_million = "Researchers in R&D (per million people)",
+  un_multidim_pov = "UNDP Multidimensional poverty (% of population)",
+  wb_multidim_pov = "World Bank Multidimensional poverty  (% of population)",
+  pov_national = "Poverty headcount ratio at national poverty lines (% of population)",
+  pov_international = "Poverty headcount ratio at $2.15 a day (2017 PPP) (% of population)",
+  oda_gni = "Net ODA received (% of GNI)",
+  life_expectancy = "Life expectancy at birth, total (years)",
+  school_enrollment_primary = "School enrollment, primary (% gross)",
+  remittances_gdp = "Personal remittances, received (% of GDP)",
+  fiscal_balance_gdp = "Fiscal balance (% of GDP)",
+  interest_payments_gdp = "Interest payments (% of expense)",
+  working_age_pop_pct = "Population ages 15-64 (% of total population"
+)
+
+common::labels(df_clean) <- desc
+```
+
+Saving
+
+```{r}
+write_csv(df_clean, "../../data/processed/03_WDI.csv")
+write_dta(df_clean, "../../data/processed/03_WDI.dta")
+```
+
+
