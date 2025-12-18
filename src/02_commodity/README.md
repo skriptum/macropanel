@@ -12,6 +12,7 @@ Constructing a commodity price index like [Dehn (2000)](https://ora.ox.ac.uk/obj
 $$
 W_{ic} = \frac{(x-m)_{ci}}{\sum (x-m)_{ci}} \text{ for all } (x-m)_{ci} > 0
 $$
+
 The weight of each commodity *i* is
 
 - net exports for commodity (for which country is a net exporter)
@@ -31,15 +32,17 @@ The country specific index $DM{ct}$ is the product of
 
 
 Then deflate by
+
 $$
 P^{real}_{ct} = \log \frac{P_{ct}}{e_t}
 $$
 
-- e = world exports value
+- e = world exports value?
 
 
 
 also weigh by share of exports in countries GDP (shocks impact more export oriented countries more)
+
 $$
 x_{i} = \frac{\sum (x-m)_{ci}}{GDP} \text{ for all ...}
 $$
@@ -50,6 +53,7 @@ $$
 
 
 Then:
+
 $$
 P_{xct} = x_i * P^{real}_{ct}
 $$
@@ -60,7 +64,6 @@ $$
 - Commodity prices for a large basket -> IMF PCPS
 - Export values for each country and commodity -> UNCTAD
 - a lot of time
-
 
 
 ### Risks
