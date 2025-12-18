@@ -109,10 +109,48 @@ df_index_raw <- df %>%
 
 ```{r}
 df_index_raw %>%
-  filter(country_iso3 == "DEU") %>%
+  filter(country_iso3 == "SAU") %>%
   ggplot(aes(x = year, y = index)) +
     geom_line() 
 ```
+
+## Deflating
+
+$$
+P^{real}_{ct} = log \frac{P_{ct}}{e_{t}}
+$$
+
+with export unit value deflator from Pink Sheet
+
+```{r}
+readxl::excel_sheets("../../data/raw/CMO-Historical-Data-Annual.xlsx")
+```
+
+
+```{r}
+raw_deflator <- readxl::read_excel("../../data/raw/CMO-Historical-Data-Annual.xlsx", sheet="Annual Indices (Real)", skip=9)
+```
+
+```{r}
+deflator <- raw_deflator %>%
+  select(`...1`, MUV) %>%
+  reframe(
+    year = `...1`,
+    #rebase MUV to 1990 = 100
+    muv_1990 = MUV / MUV[which(year == 1990)] * 100
+  )
+```
+
+```{r}
+df_index_real <- df_index_raw %>%
+  left_join(deflator, by = "year") %>%
+  reframe(
+    country_iso3,
+    year,
+    index = log(index / (muv_1990)) # deflate to real terms
+  )
+```
+
 
 ## GDP weighted
 
@@ -133,41 +171,59 @@ df_gdp <- df_gmd %>%
 ```
 
 ```{r}
+df_wdi <- read_csv("../../data/raw/WDI.csv")
+```
+```{r}
+df_wdi <- df_wdi %>%
+  filter(`Indicator Code` == "NY.GDP.MKTP.CD") %>%
+  select(`Country Code`, `1990`) 
+```
+
+
+
+```{r}
 df_gdp_weight <- df %>%
   filter(year == base_year) %>%
   group_by(country_iso3) %>%
   reframe(
     gdp = df_gdp$gdp[match(country_iso3, df_gdp$ISO3)] * 1000, # convert to current USD
-    commodity_weight = value / gdp,
-    gdp_weight = sum(commodity_weight, na.rm = TRUE)
+    # gdp = df_wdi$`1990`[match(country_iso3, df_wdi$`Country Code`)] /1000, # use WDI GDP for 1990
+    # commodity_weight = value / gdp,
+    sum_commodity = sum(value, na.rm = TRUE),
+    gdp_weight = sum_commodity / gdp
   ) %>%
-  select(country_iso3, gdp_weight) %>%
   distinct()
 
 df_gdp_weight %>%
   arrange(desc(gdp_weight))
 ```
 
-unrealisitc countries: VEN, SLE, LBR, CHE
+unrealistic countries: VEN, SLE, LBR, CHE
 
 $$
 P_{xct} = x_i * P^{real}_{ct}
 $$
 
 ```{r}
-df_index_gdp_weighted <- df_index_raw %>%
+df_index_gdp_weighted <- df_index_real %>%
   left_join(df_gdp_weight, by = "country_iso3") %>%
-  # filter(!country_iso3 %in% c("VEN", "SLE", "LBR")) %>%
+  filter(!country_iso3 %in% c("VEN", "SLE", "LBR", "ZMB", "COD", "MDG", "ISL")) %>%
   group_by(country_iso3, year) %>%
   reframe(
     index_gdp_weighted = gdp_weight * index 
   )
 ```
 
-## Plot
+## Save 
 
 ```{r}
-df_index_gdp_weighted %>%
+write_csv(df_index_gdp_weighted, "../../data/processed/_03_Index.csv")
+```
+
+## Quick Plot
+
+```{r}
+p <- df_index_gdp_weighted %>%
   filter(
     country_iso3 %in% c(
       # make the plot for 30 large economies
@@ -177,6 +233,13 @@ df_index_gdp_weighted %>%
     )
   ) %>%
   ggplot(aes(x = year, y = index_gdp_weighted, color=country_iso3)) +
-    geom_line()
+    geom_line() 
+
+p
+
+```
+
+```{r}
+plotly::ggplotly(p)
 ```
 
