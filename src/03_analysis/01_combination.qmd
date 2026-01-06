@@ -16,6 +16,7 @@ df_imf <- read_dta("../../data/processed/04_IMF_data.dta")
 df_wid <- read_dta("../../data/processed/05_WID.dta")
 df_conf <- read_dta("../../data/processed/06_Conf_Board.dta")
 df_index <- read_dta("../../data/processed/07_Misc_Ind.dta")
+df_wefm <- read_dta("../../data/processed/08_WEFM.dta")
 ```
 
 ```{r}
@@ -38,12 +39,14 @@ df_imf <- df_imf %>% mutate(year = as.integer(year))
 df_wid <- df_wid %>% mutate(year = as.integer(year))
 df_conf <- df_conf %>% mutate(year = as.integer(year))
 df_comm <- df_comm %>% mutate(year = as.integer(year))
+df_wefm <- df_wefm %>% mutate(year = as.integer(year))
 ```
 
 
 ```{r}
-df_combined <- df_gmd %>%
+df_combined <- df_wefm %>%
   left_join(df_wesp, by = c("ISO3")) %>%
+  full_join(df_gmd, by = c("ISO3", "year")) %>%
   full_join(df_wdi, by = c("ISO3", "year")) %>%
   full_join(df_imf, by = c("ISO3", "year")) %>%
   full_join(df_wid, by = c("ISO3", "year")) %>%

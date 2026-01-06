@@ -22,14 +22,12 @@ p1 <- df %>%
   theme(axis.text.x = element_text(angle = 90))
 
 
-p1 
-
-ggsave("../../processed/missing_data.jpg", p1, width = 10, height = 6)
+p1
 ```
 
-## Summary Statistics
 
 ```{r}
-df |> tbl_summary() 
+ggsave("../../data/processed/missing_data.jpg", p1, width = 10, height = 6)
 ```
+
 

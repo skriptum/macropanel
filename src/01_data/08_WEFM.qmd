@@ -1,0 +1,91 @@
+# WEFM data 
+
+official data output from the WEFM model for GDP and inflation
+
+```{r}
+library(tidyverse)
+library(readxl)
+```
+
+list available excel sheets
+```{r}
+excel_sheets("../../data/raw/WEFM25.xlsx")
+```
+
+
+```{r}
+raw_gdp_us <- read_excel("../../data/raw/WEFM25.xlsx", sheet = "GDP $US")
+raw_gdp_us_growth <- read_excel("../../data/raw/WEFM25.xlsx", sheet = "GDP growth")
+raw_gdp_pc <- read_excel("../../data/raw/WEFM25.xlsx", sheet = "GDPpc $US")
+raw_gdp_pc_growth <- read_excel("../../data/raw/WEFM25.xlsx", sheet = "GDPpc growth")
+```
+
+## Clean
+
+```{r}
+raw_gdp_us_growth %>%
+  rename(country = `...1`) %>%
+  # split coutry at _
+  separate(country, into = c("ISO3", "random"), sep = "_") %>%
+  # select only country with 3 letters
+  filter(str_length(ISO3) == 3) %>%
+  select(ISO3, `1990`:`2025`) %>%
+  pivot_longer(-ISO3, names_to = "year", values_to = "gdp_usd")
+```
+
+```{r}
+clean_gdp <- function(df, value_name) {
+  df %>%
+    rename(country = `...1`) %>%
+    separate(country, into = c("ISO3", "random"), sep = "_", remove = TRUE) %>%
+    filter(str_length(ISO3) == 3) %>%
+    select(ISO3, `1990`:`2025`) %>%
+    pivot_longer(
+      cols = -ISO3,
+      names_to = "year",
+      values_to = value_name
+    )
+}
+```
+
+```{r}
+raw_dfs <- list(
+  "gdp_usd"       = raw_gdp_us,
+  "gdp_growth"    = raw_gdp_us_growth,
+  "gdp_pc"    = raw_gdp_pc,
+  "gdp_pc_growth" = raw_gdp_pc_growth
+)
+
+# clean all dataframes
+gdp_list <- imap(
+  raw_dfs,
+  ~ clean_gdp(.x, .y)
+)
+
+# join all dataframes
+gdp_final <- reduce(
+  gdp_list,
+  full_join,
+  by = c("ISO3", "year")
+)
+```
+```{r}
+desc <- c(
+  "gdp_usd"       = "GDP in current US dollars",
+  "gdp_growth"    = "Annual GDP growth rate in %",
+  "gdp_pc"        = "GDP per capita in current US dollars",
+  "gdp_pc_growth" = "Annual GDP per capita growth rate in %"
+)
+common::labels(gdp_final) <- desc
+```
+
+
+
+Save
+
+```{r}
+write_csv(gdp_final,"../../data/processed/08_WEFM.csv")
+haven::write_dta(gdp_final,"../../data/processed/08_WEFM.dta")
+```
+
+

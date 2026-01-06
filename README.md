@@ -29,7 +29,8 @@ Commented repository structure
 ├── docs
 └── src
     ├── 01_data                # Data Processing Scripts
-    └── 02_commodity           # Commodity Price Index Scripts
+    ├── 02_commodity           # Commodity Price Index Scripts
+    └── 03_analysis            # Combinationa and analysis
 ```
 
 To reproduce the dataset, run the scripts in `src` in the numbered order. You will need to download some raw data files manually, as indicated in the respective scripts. 
@@ -55,15 +56,14 @@ To reproduce the dataset, run the scripts in `src` in the numbered order. You wi
 
 ### Macro
 
-| Code           | *Variable*       | *Unit*             | *Source* |
-| -------------- | ---------------- | ------------------ | -------- |
-|                | GDP              | US $, nominal      | WEFM     |
-|                | GDP              | per capita         | WEFM     |
-|                | GDP              | per capita, PPP    | WEFM     |
-|                | GDP              | nominal growth     | WEFM     |
-|                | GDP              | real growth        | WEFM     |
-| oda_gni        | Net ODA received | % of GNI           | WB       |
-| output_gap_pct | Output Gap       | % of Potential GDP | IMF      |
+| Code           | *Variable*            | *Unit*             | *Source* |
+| -------------- | --------------------- | ------------------ | -------- |
+| gdp_usd        | GDP                   | US$                | WEFM     |
+| gdp_growth     | GDP growth            | %                  | WEFM     |
+| gdp_pc         | GDP per cap           | US$                | WEFM     |
+| gdp_pc_growth  | GDP per capita growth | %                  | WEFM     |
+| oda_gni        | Net ODA received      | % of GNI           | WB       |
+| output_gap_pct | Output Gap            | % of Potential GDP | IMF      |
 
 
 
