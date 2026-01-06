@@ -1,0 +1,47 @@
+# Combining the data and producing summary statistics
+
+```{r}
+library(tidyverse)
+library(haven)
+```
+
+
+## Load the datasets
+
+```{r}
+df_wesp <- read_dta("../../data/processed/01_WESP.dta")
+df_gmd <- read_dta("../../data/processed/02_GMD.dta")
+df_wdi <- read_dta("../../data/processed/03_WDI.dta")
+df_imf <- read_dta("../../data/processed/04_IMF_data.dta")
+df_wid <- read_dta("../../data/processed/05_WID.dta")
+df_conf <- read_dta("../../data/processed/06_Conf_Board.dta")
+df_index <- read_dta("../../data/processed/07_Misc_Ind.dta")
+```
+
+## Combine the datasets
+
+```{r}
+df_gmd <- df_gmd %>% mutate(year = as.integer(year))
+df_wdi <- df_wdi %>% mutate(year = as.integer(year))
+df_imf <- df_imf %>% mutate(year = as.integer(year))
+df_wid <- df_wid %>% mutate(year = as.integer(year))
+df_conf <- df_conf %>% mutate(year = as.integer(year))
+```
+
+
+```{r}
+df_combined <- df_gmd %>%
+  full_join(df_wesp, by = c("ISO3")) %>%
+  full_join(df_wdi, by = c("ISO3", "year")) %>%
+  full_join(df_imf, by = c("ISO3", "year")) %>%
+  full_join(df_wid, by = c("ISO3", "year")) %>%
+  full_join(df_conf, by = c("ISO3", "year")) %>%
+  full_join(df_index, by = c("ISO3", "year"))
+```
+
+## Save the combined dataset
+
+```{r}
+write_dta(df_combined, "../../data/processed/08_Combined_Data.dta")
+write_csv(df_combined, "../../data/processed/08_Combined_Data.csv")
+```
