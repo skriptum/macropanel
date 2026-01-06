@@ -48,6 +48,7 @@ df_clean <- df_cb %>%
   # clean up column names
   reframe(
     ISO3 = countrycode::countrycode(ISO3, origin = "iso3c", destination = "iso3c"), #useful for filtering out the regions that are not countries (e.g GLO = global)
+    year = year,
     total_hours_worked = TOTHR,
     labor_productivity_person_growth = LP_L_g,
     labor_productivity_hour_growth = LP_H_g,

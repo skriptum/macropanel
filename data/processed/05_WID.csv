@@ -1,4 +1,4 @@
-ISO,year,gini,income_share_b50,income_share_t10,share_ratio
+ISO3,year,gini,income_share_b50,income_share_t10,share_ratio
 AND,1990,0.4437,0.2093,0.325,1.5527950310559007
 AND,1991,0.4412,0.2105,0.323,1.5344418052256532
 AND,1992,0.45,0.2055,0.332,1.615571776155718

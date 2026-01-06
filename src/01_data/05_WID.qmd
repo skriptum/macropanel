@@ -33,7 +33,7 @@ gini <- gini %>%
   filter(!str_detect(country, "-")) %>%
   select(-variable) %>%
   reframe(
-    ISO = countrycode::countrycode(country, "iso2c", "iso3c"),
+    ISO3 = countrycode::countrycode(country, "iso2c", "iso3c"),
     year,
     gini = value
     ) 
@@ -58,7 +58,7 @@ income_shares <- income_shares %>%
   pivot_wider(names_from = percentile, values_from = value) %>%
   select(-variable) %>%
   reframe(
-    ISO = countrycode::countrycode(country, "iso2c", "iso3c"),
+    ISO3 = countrycode::countrycode(country, "iso2c", "iso3c"),
     year,
     income_share_b50 = p0p50,
     income_share_t10 = p90p100,
@@ -69,8 +69,8 @@ income_shares <- income_shares %>%
 ```{r}
 # merge
 df_inequal <- gini %>%
-  filter(is.na(ISO) == FALSE) %>%
-  left_join(income_shares, by = c("ISO", "year"))
+  filter(is.na(ISO3) == FALSE) %>%
+  left_join(income_shares, by = c("ISO3", "year"))
 ```
 ## Save
 
