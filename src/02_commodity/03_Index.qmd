@@ -173,6 +173,7 @@ df_gdp <- df_gmd %>%
 ```{r}
 df_wdi <- read_csv("../../data/raw/WDI.csv")
 ```
+
 ```{r}
 df_wdi <- df_wdi %>%
   filter(`Indicator Code` == "NY.GDP.MKTP.CD") %>%

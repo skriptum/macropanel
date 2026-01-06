@@ -156,3 +156,35 @@ write_csv(df_HDI, "../../data/processed/07_HDI.csv")
 write_dta(df_HDI, "../../data/processed/07_HDI.dta")
 ```
 
+## Combine the indices
+
+```{r}
+df_freedom <- df_freedom %>% mutate(year=as.integer(year)) 
+```
+
+
+```{r}
+df_comb <- df_oec %>%
+  full_join(df_freedom, by=c("ISO3", "year")) %>%
+  full_join(df_cpi, by=c("ISO3", "year")) %>%
+  full_join(df_HDI, by=c("ISO3", "year"))
+```
+```{r}
+desc <- c(
+  eci = "Economic Complexity Index (ECI)",
+  FHI_status = "Freedom House Index - Status",
+  FHI_pr = "Freedom House Index - Political Rights",
+  FHI_cl = "Freedom House Index - Civil Liberties"
+)
+```
+
+```{r}
+common::labels(df_comb) <- desc
+```
+
+
+```{r}
+write_csv(df_comb, "../../data/processed/07_Misc_Ind.csv")
+write_dta(df_comb, "../../data/processed/07_Misc_Ind.dta")
+```
+
