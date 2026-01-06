@@ -37,7 +37,6 @@ indicator_list <- c(
   "SI.POV.NAHC", # Poverty headcount ratio at national poverty lines (% of population)
   "SI.POV.DDAY", # Poverty headcount ratio at $2.15 a day (2017 PPP) (% of population)
   # --- Debt
-  "GC.NLD.TOTL.GD.ZS", # Fiscal balance (% of GDP)
   "GC.XPN.INTP.ZS", # Interest payments (% of expense)
   # --- Miscellaneous
   "DT.ODA.ODAT.GN.ZS",  # Net ODA received (% of GNI)
@@ -98,7 +97,6 @@ df_clean <- df_clean %>%
     life_expectancy = SP.DYN.LE00.IN,
     school_enrollment_primary = SE.PRM.ENRR,
     remittances_gdp = BX.TRF.PWKR.DT.GD.ZS,
-    fiscal_balance_gdp = GC.NLD.TOTL.GD.ZS,
     interest_payments = GC.XPN.INTP.ZS,
     working_age_pop_pct = SP.POP.1564.TO.ZS
     ) 
@@ -127,7 +125,6 @@ desc <- c(
   life_expectancy = "Life expectancy at birth, total (years)",
   school_enrollment_primary = "School enrollment, primary (% gross)",
   remittances_gdp = "Personal remittances, received (% of GDP)",
-  fiscal_balance_gdp = "Fiscal balance (% of GDP)",
   interest_payments_gdp = "Interest payments (% of expense)",
   working_age_pop_pct = "Population ages 15-64 (% of total population"
 )

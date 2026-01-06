@@ -1,0 +1,35 @@
+# Exploration
+
+```{r}
+library(tidyverse)
+library(visdat)
+library(gtsummary)
+library(patchwork)
+```
+
+```{r}
+df <- haven::read_dta("../../data/processed/final_data.dta")
+```
+
+## Missing
+
+```{r}
+p1 <- df %>%
+  # select first 30 columns
+  vis_miss() +
+  # angle text 90 degrees
+  labs(title = "Macro Data Availability") +
+  theme(axis.text.x = element_text(angle = 90))
+
+
+p1 
+
+ggsave("../../processed/missing_data.jpg", p1, width = 10, height = 6)
+```
+
+## Summary Statistics
+
+```{r}
+df |> tbl_summary() 
+```
+

@@ -208,8 +208,6 @@ write_dta(df_WEO, "../../data/processed/04_WEO.dta")
 imf_data <- df_FM %>%
   left_join(df_ICSD, by = c("ISO3", "year")) %>%
   left_join(df_WEO, by = c("ISO3", "year")) %>%
-  arrange(ISO3, year) %>%
-  filter(year <= 2025)
 ```
 
 ```{r}

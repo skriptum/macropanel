@@ -18,6 +18,17 @@ df_conf <- read_dta("../../data/processed/06_Conf_Board.dta")
 df_index <- read_dta("../../data/processed/07_Misc_Ind.dta")
 ```
 
+```{r}
+df_comm <- read_dta("../../data/processed/_03_Index.dta")
+```
+
+```{r}
+df_imf <- df_imf %>%
+  # convert all "" to NA
+  mutate(across(everything(), ~ na_if(., "")))
+```
+
+
 ## Combine the datasets
 
 ```{r}
@@ -26,22 +37,31 @@ df_wdi <- df_wdi %>% mutate(year = as.integer(year))
 df_imf <- df_imf %>% mutate(year = as.integer(year))
 df_wid <- df_wid %>% mutate(year = as.integer(year))
 df_conf <- df_conf %>% mutate(year = as.integer(year))
+df_comm <- df_comm %>% mutate(year = as.integer(year))
 ```
 
 
 ```{r}
 df_combined <- df_gmd %>%
-  full_join(df_wesp, by = c("ISO3")) %>%
+  left_join(df_wesp, by = c("ISO3")) %>%
   full_join(df_wdi, by = c("ISO3", "year")) %>%
   full_join(df_imf, by = c("ISO3", "year")) %>%
   full_join(df_wid, by = c("ISO3", "year")) %>%
   full_join(df_conf, by = c("ISO3", "year")) %>%
-  full_join(df_index, by = c("ISO3", "year"))
+  full_join(df_index, by = c("ISO3", "year")) %>%
+  full_join(df_comm, by = c("ISO3", "year"))
 ```
+
+```{r}
+df_combined <- df_combined %>%
+  filter(ISO3 %in% df_wesp$ISO3) 
+```
+
+
 
 ## Save the combined dataset
 
 ```{r}
-write_dta(df_combined, "../../data/processed/08_Combined_Data.dta")
-write_csv(df_combined, "../../data/processed/08_Combined_Data.csv")
+write_dta(df_combined, "../../data/processed/final_data.dta")
+write_csv(df_combined, "../../data/processed/final_data.csv")
 ```

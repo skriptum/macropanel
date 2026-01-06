@@ -58,6 +58,20 @@ df_clean <- df_cb %>%
 ```
 
 ```{r}
+desc <- c(
+  ISO3 = "ISO3 country code",
+  year = "Year",
+  total_hours_worked = "Total annual hours worked",
+  labor_productivity_person_growth = "Growth in labor productivity per person employed (in %)",
+  labor_productivity_hour_growth = "Growth in labor productivity per hour worked (in %)",
+  total_factor_productivity_growth = "Total factor productivity growth (in %)"
+)
+common::labels(df_clean) <- desc
+```
+
+
+
+```{r}
 write_csv(df_clean, "../../data/processed/06_Conf_Board.csv")
 haven::write_dta(df_clean, "../../data/processed/06_Conf_Board.dta")
 ```

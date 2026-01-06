@@ -72,6 +72,21 @@ df_inequal <- gini %>%
   filter(is.na(ISO3) == FALSE) %>%
   left_join(income_shares, by = c("ISO3", "year"))
 ```
+
+```{r}
+desc <- c(
+  ISO3 = "ISO3 country code",
+  year = "Year",
+  gini = "Gini coefficient of disposable income",
+  income_share_b50 = "Income share of bottom 50%",
+  income_share_t10 = "Income share of top 10%",
+  share_ratio = "Ratio of income share of top 10% to bottom 50%"
+)
+
+common::labels(df_inequal) <- desc
+```
+
+
 ## Save
 
 ```{r}

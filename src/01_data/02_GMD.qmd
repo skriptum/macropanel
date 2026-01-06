@@ -23,7 +23,7 @@ gmd <- gmd(version = "2025_09")
 ```{r}
 df_f <- gmd %>%
   select(
-    ISO3, year, CPI, infl, cbrate, USDfx, REER, HPI, unemp
+    ISO3, year, CPI, infl, cbrate, USDfx, REER, HPI, unemp, inv_GDP, gen_govexp_GDP, gen_govrev_GDP, govdebt_GDP
   ) %>%
   filter(
     year >= 1990,

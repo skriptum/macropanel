@@ -29,10 +29,7 @@ df_oec <- raw_oec$data %>%
 head(df_oec)
 ```
 
-```{r}
-write_csv(df_oec, "../../data/processed/07_OEC.csv")
-write_dta(df_oec, "../../data/processed/07_OEC.dta")
-```
+
 
 ## Freedom House
 
@@ -81,10 +78,6 @@ df_freedom <- raw_freedom %>%
 head(df_freedom)  
 ```
 
-```{r}
-write_csv(df_freedom, "../../data/processed/07_Freedom_House.csv")
-write_dta(df_freedom, "../../data/processed/07_Freedom_House.dta")
-```
 
 ## Corruption Perception Index
 
@@ -118,10 +111,7 @@ desc_cpi <- c(
 common::labels(df_cpi) <- desc_cpi
 ```
 
-```{r}
-write_csv(df_cpi, "../../data/processed/07_CPI.csv")
-write_dta(df_cpi, "../../data/processed/07_CPI.dta")
-```
+
 
 ## Human Development Index
 
@@ -151,10 +141,6 @@ common::labels(df_HDI) <- c(
 )
 ```
 
-```{r}
-write_csv(df_HDI, "../../data/processed/07_HDI.csv")
-write_dta(df_HDI, "../../data/processed/07_HDI.dta")
-```
 
 ## Combine the indices
 

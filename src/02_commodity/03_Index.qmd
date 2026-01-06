@@ -109,7 +109,7 @@ df_index_raw <- df %>%
 
 ```{r}
 df_index_raw %>%
-  filter(country_iso3 == "SAU") %>%
+  filter(country_iso3 == "BRA") %>%
   ggplot(aes(x = year, y = index)) +
     geom_line() 
 ```
@@ -147,7 +147,8 @@ df_index_real <- df_index_raw %>%
   reframe(
     country_iso3,
     year,
-    index = log(index / (muv_1990)) # deflate to real terms
+    # index = log(index / (muv_1990)) # deflate to real terms
+    index = index / (muv_1990) # deflate to real terms
   )
 ```
 
@@ -170,15 +171,7 @@ df_gdp <- df_gmd %>%
   filter(year == base_year)
 ```
 
-```{r}
-df_wdi <- read_csv("../../data/raw/WDI.csv")
-```
 
-```{r}
-df_wdi <- df_wdi %>%
-  filter(`Indicator Code` == "NY.GDP.MKTP.CD") %>%
-  select(`Country Code`, `1990`) 
-```
 
 
 
@@ -208,39 +201,53 @@ $$
 ```{r}
 df_index_gdp_weighted <- df_index_real %>%
   left_join(df_gdp_weight, by = "country_iso3") %>%
-  filter(!country_iso3 %in% c("VEN", "SLE", "LBR", "ZMB", "COD", "MDG", "ISL")) %>%
   group_by(country_iso3, year) %>%
-  reframe(
+  mutate(
     index_gdp_weighted = gdp_weight * index 
   )
+```
+
+
+```{r}
+df_cleaned <- df_index_gdp_weighted %>%
+  filter(!country_iso3 %in% c("VEN", "SLE", "LBR", "ZMB", "COD", "MDG", "ISL", "TKM", "SUR", "MWI", "SUR", "CHL", "NRU", "MKD", "MSR", "BDI")) %>%
+  reframe(
+    ISO3 = country_iso3,
+    year,
+    commodity_index = index_gdp_weighted
+  ) %>%
+  select(ISO3, year, commodity_index)
+
+desc <- c("commodity_index" = "Commodity Price Index")
+common::labels(df_cleaned) <- desc
 ```
 
 ## Save 
 
 ```{r}
-write_csv(df_index_gdp_weighted, "../../data/processed/_03_Index.csv")
+write_csv(df_cleaned, "../../data/processed/_03_Index.csv")
+haven::write_dta(df_cleaned, "../../data/processed/_03_Index.dta")
 ```
 
 ## Quick Plot
 
 ```{r}
-p <- df_index_gdp_weighted %>%
-  filter(
-    country_iso3 %in% c(
-      # make the plot for 30 large economies
-      "USA", "CHN", "JPN", "DEU", "IND", "GBR", "FRA", "ITA", "BRA", "CAN",
-      "RUS", "KOR", "ESP", "AUS", "MEX", "IDN", "NLD", "SAU", "TUR",
-      "ARG", "SWE", "POL", "BEL", "THA", "NGA", "AUT", "IRN", "NOR", "ISR"
-    )
-  ) %>%
-  ggplot(aes(x = year, y = index_gdp_weighted, color=country_iso3)) +
+p <- df_cleaned %>%
+  # filter(
+  #   country_iso3 %in% c(
+  #     # make the plot for 30 large economies
+  #     "USA", "CHN", "JPN", "DEU", "IND", "GBR", "FRA", "ITA", "BRA", "CAN",
+  #     "RUS", "KOR", "ESP", "AUS", "MEX", "IDN", "NLD", "SAU", "TUR",
+  #     "ARG", "SWE", "POL", "BEL", "THA", "NGA", "AUT", "IRN", "NOR", "ISR"
+  #   )
+  # ) %>%
+  filter(! country_iso3 %in% c("MWI", "SUR", "CHL", "NRU", "MKD", "MSR", "BDI")) %>%
+  ggplot(aes(x = year, y = commodity_index, color=country_iso3)) +
     geom_line() 
 
-p
-
-```
-
-```{r}
 plotly::ggplotly(p)
+
 ```
+
+
 
