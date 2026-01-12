@@ -2,16 +2,49 @@
 
 ```{r}
 library(tidyverse)
-library(globalmacrodata)
 ```
 
 ## Read the Data
 
 ```{r}
 df_prices <- read_csv("../../data/processed/_01_Commodity_Prices.csv")
-# df_trade <- read_csv("../../data/processed/_02_Trade.csv")
-df_trade <- read_csv("../../data/processed/_02_Trade_total.csv")
+df_trade <- read_csv("../../data/processed/_02_Trade.csv")
+# df_trade <- read_csv("../../data/processed/_02_Trade_total.csv")
 ```
+## Filter trade data
+
+Filtering country + comm series that are 
+- incomplete over the whole period
+- less than 10% of overall exports
+
+following Collier & Goderis (explained in Appendix I)
+
+```{r}
+df_trade_filter <- df_trade %>%
+  # filter(country_iso3 == "BRA") %>%
+  group_by(country_iso3, commodity) %>%
+  reframe(
+    n_years = n(),
+    total_value = sum(export_value_usd, na.rm = TRUE)
+  ) %>%
+  filter(
+    n_years == 29 | total_value / sum(total_value) > 0.1
+  ) %>%
+  reframe(
+    country_iso3,
+    commodity,
+    keep = TRUE
+  )
+```
+
+```{r}
+df_trade <- df_trade %>%
+  left_join(df_trade_filter, by = c("country_iso3", "commodity")) %>%
+  filter(keep == TRUE) %>%
+  select(-keep)
+```
+
+
 
 ## Merging
 
@@ -32,10 +65,9 @@ df <- df_trade %>%
     country_iso3,
     year,
     commodity,
-    # value = export_value_usd,
-    value = trade_value_usd,
-    # quantity = export_quantity_mt,
-    quantity = trade_quantity_mt,
+    ## adjust the coments wheter its net or total trade data! 
+    value = export_value_usd,
+    # value = trade_value_usd,
     price
   ) 
 ```
@@ -62,7 +94,7 @@ Problem with using 1995 as base year = many countries have no net exports for th
 => use 2013 as base year (has the most observations)
 
 ```{r}
-base_year <- 1995
+base_year <- 2013
 ```
 
 Calculate weights based on export value in base year
@@ -103,16 +135,22 @@ df_index_raw <- df %>%
   left_join(df_weights, by = c("country_iso3", "commodity")) %>%
   group_by(country_iso3, year) %>%
   reframe(
+    nr_commodities = n(),
     index = prod(price ^ weight_ict, na.rm = T)
-  ) 
+  )
 ```
 
 ```{r}
 df_index_raw %>%
-  filter(country_iso3 == "BRA") %>%
+  filter(country_iso3 == "CHL") %>%
   ggplot(aes(x = year, y = index)) +
     geom_line() 
 ```
+
+Why is CHL sooo high?
+- high number for price of copper (2900)
+- high weight in export (0.92)
+=> 2900^0.92 = more than 1000
 
 ## Deflating
 
@@ -147,11 +185,18 @@ df_index_real <- df_index_raw %>%
   reframe(
     country_iso3,
     year,
-    # index = log(index / (muv_1990)) # deflate to real terms
-    index = index / (muv_1990) # deflate to real terms
+    index = log(index / (muv_1990)) # deflate to real terms
+    # index = index / (muv_1990) # deflate to real terms
   )
 ```
 
+
+```{r}
+df_index_real %>%
+  filter(country_iso3 == "VEN") %>%
+  ggplot(aes(x = year, y = index)) +
+    geom_line() 
+```
 
 ## GDP weighted
 
@@ -159,20 +204,21 @@ $$
 x_{i} = \frac{\sum x_{ci}}{GDP_{1990}} 
 $$
 
-get GDP from globalmacrodatabase
+get GDP from WB WDI
+
 
 ```{r}
-df_gmd <-  gmd(version = "2025_09")
-```
-
-```{r}
-df_gdp <- df_gmd %>%
-  select(ISO3, year, gdp = nGDP_USD) %>% #nominal GDP in USD
-  filter(year == base_year)
+df_wdi <- read_csv("../../data/raw/WDI.csv")
 ```
 
 
 
+
+```{r}
+df_wdi <- df_wdi %>%
+  filter(`Indicator Code` == "NY.GDP.MKTP.CD") %>%
+  select(`Country Code`, `1990`) 
+```
 
 
 ```{r}
@@ -180,8 +226,8 @@ df_gdp_weight <- df %>%
   filter(year == base_year) %>%
   group_by(country_iso3) %>%
   reframe(
-    gdp = df_gdp$gdp[match(country_iso3, df_gdp$ISO3)] * 1000, # convert to current USD
-    # gdp = df_wdi$`1990`[match(country_iso3, df_wdi$`Country Code`)] /1000, # use WDI GDP for 1990
+    # gdp = df_gdp$gdp[match(country_iso3, df_gdp$ISO3)] * 1000, # convert to current USD
+    gdp = df_wdi$`1990`[match(country_iso3, df_wdi$`Country Code`)] /1000, # use WDI GDP for 1990
     # commodity_weight = value / gdp,
     sum_commodity = sum(value, na.rm = TRUE),
     gdp_weight = sum_commodity / gdp
@@ -192,7 +238,7 @@ df_gdp_weight %>%
   arrange(desc(gdp_weight))
 ```
 
-unrealistic countries: VEN, SLE, LBR, CHE
+Unrealistic: countries with very high gdp weights (>1), ie: QAT,...
 
 $$
 P_{xct} = x_i * P^{real}_{ct}
@@ -210,7 +256,6 @@ df_index_gdp_weighted <- df_index_real %>%
 
 ```{r}
 df_cleaned <- df_index_gdp_weighted %>%
-  filter(!country_iso3 %in% c("VEN", "SLE", "LBR", "ZMB", "COD", "MDG", "ISL", "TKM", "SUR", "MWI", "SUR", "CHL", "NRU", "MKD", "MSR", "BDI")) %>%
   reframe(
     ISO3 = country_iso3,
     year,
@@ -234,19 +279,19 @@ haven::write_dta(df_cleaned, "../../data/processed/_03_Index.dta")
 ```{r}
 p <- df_cleaned %>%
   # filter(
-  #   country_iso3 %in% c(
+  #   ISO3 %in% c(
   #     # make the plot for 30 large economies
   #     "USA", "CHN", "JPN", "DEU", "IND", "GBR", "FRA", "ITA", "BRA", "CAN",
   #     "RUS", "KOR", "ESP", "AUS", "MEX", "IDN", "NLD", "SAU", "TUR",
-  #     "ARG", "SWE", "POL", "BEL", "THA", "NGA", "AUT", "IRN", "NOR", "ISR"
+  #     "ARG", "SWE", "POL", "BEL", "THA", "NGA", "AUT", "IRN", "NOR", "ISR", "CHL", "BRA"
   #   )
   # ) %>%
-  filter(! country_iso3 %in% c("MWI", "SUR", "CHL", "NRU", "MKD", "MSR", "BDI")) %>%
-  ggplot(aes(x = year, y = commodity_index, color=country_iso3)) +
+  filter(!ISO3 %in% c("ZMB", "QAT")) %>%
+  # filter(ISO3 == "CHL") %>%
+  ggplot(aes(x = year, y = commodity_index, color=ISO3)) +
     geom_line() 
 
 plotly::ggplotly(p)
-
 ```
 
 
