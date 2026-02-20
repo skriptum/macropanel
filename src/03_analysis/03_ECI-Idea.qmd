@@ -1,0 +1,49 @@
+# Economic Complexity Index and growth?
+
+## Imports
+
+```{r}
+library(tidyverse)
+library(haven)
+```
+
+```{r}
+df <- read_dta("../../data/processed/final_data.dta")
+```
+
+## Idea Nr. 1
+
+Idea: 
+
+- countries with more stronger producitve capabilites -> grow faster
+- more spohistication + diversification
+
+Analysis
+
+- ECI for a given year (2005, 2010)
+- GDP growth in subsequent decade
+- scatter plot
+
+```{r}
+start_year <- 2005
+end_year <- 2015
+
+df %>%
+  select(country, year, eci, gdp_usd) %>%
+  filter(year %in% c(start_year, end_year)) %>%
+  group_by(country) %>%
+  reframe(
+    eci = first(eci),
+    gdp_growth = ( (last(gdp_usd) / first(gdp_usd))^(1/9) - 1) *100, #CAGR
+  ) %>%
+  filter(!is.na(eci)) %>%
+  ggplot(aes(x = eci, y = gdp_growth)) +
+  geom_point() +
+  geom_smooth(method = "lm", se = T) +
+  labs(
+    title= paste0("ECI in ", start_year, " vs. GDP growth in ", start_year, "-", end_year),
+    x = "Economic Complexity Index",
+    y = "CAGR %"
+    ) 
+```
+

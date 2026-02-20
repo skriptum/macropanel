@@ -3,7 +3,6 @@
 ```{r}
 library(tidyverse)
 library(visdat)
-library(gtsummary)
 library(patchwork)
 ```
 
@@ -28,6 +27,19 @@ p1
 
 ```{r}
 ggsave("../../data/processed/missing_data.jpg", p1, width = 10, height = 6)
+```
+
+## growth by Status
+
+```{r}
+df %>%
+  group_by(status, year) %>%
+  reframe(
+    mean_growth = mean(gdp_growth, na.rm = T),
+    median_growth = median(gdp_growth, na.rm = T),
+  ) %>%
+  ggplot(aes(x = year, y = mean_growth, color = status)) +
+  geom_line() 
 ```
 
 

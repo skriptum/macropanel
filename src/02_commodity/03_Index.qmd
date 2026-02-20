@@ -193,7 +193,7 @@ df_index_real <- df_index_raw %>%
 
 ```{r}
 df_index_real %>%
-  filter(country_iso3 == "VEN") %>%
+  filter(country_iso3 == "CHL") %>%
   ggplot(aes(x = year, y = index)) +
     geom_line() 
 ```
@@ -287,6 +287,7 @@ p <- df_cleaned %>%
   #   )
   # ) %>%
   filter(!ISO3 %in% c("ZMB", "QAT")) %>%
+  filter(ISO3 == "BRA") %>%
   # filter(ISO3 == "CHL") %>%
   ggplot(aes(x = year, y = commodity_index, color=ISO3)) +
     geom_line() 
