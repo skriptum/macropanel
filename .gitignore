@@ -2,6 +2,8 @@
 .vscode/
 panel.code-workspace
 .Rproj.user
-data/raw/*
+data/raw/WDI.csv
+data/raw/BACI_HS92_V202501
+data/raw/WEFM25.xlsx
 data/.DS_Store
 
