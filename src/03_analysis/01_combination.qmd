@@ -3,6 +3,7 @@
 ```{r}
 library(tidyverse)
 library(haven)
+library(writexl)
 ```
 
 
@@ -68,3 +69,33 @@ df_combined <- df_combined %>%
 write_dta(df_combined, "../../data/processed/final_data.dta")
 write_csv(df_combined, "../../data/processed/final_data.csv")
 ```
+
+## Excel File saving
+
+save a excel file with separate sheets for each dataset of
+- Productivity growth = labor_productivity_hour_growth
+- Investment over GDP = inv_GDP
+- R&D investments = rnd_gdp
+- Researchers = researchers_per_million
+- Economic complexity index = eci
+- Publications = pub_per_million
+
+
+```{r}
+df_list <- list()
+
+for (var in c("labor_productivity_hour_growth", "inv_GDP", "rnd_gdp", "eci", "researchers_per_million", "pub_per_million")) {
+  df_var <- df_combined %>%
+    select(ISO3, year, all_of(var)) %>%
+    pivot_wider(names_from = year, values_from = all_of(var)) 
+  df_list[[var]] <- df_var
+}
+```
+
+```{r}
+write_xlsx(
+  path = "../../data/processed/innovation_data.xlsx",
+  x = df_list
+)
+```
+

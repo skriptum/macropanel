@@ -141,6 +141,20 @@ common::labels(df_HDI) <- c(
 )
 ```
 
+## Publications per million people
+
+```{r}
+raw_PUB <- read_csv("../../data/raw/scientific-publications-per-million.csv")
+
+df_PUB <- raw_PUB %>%
+  select(Code, Year, `Scientific and technical journal articles per million people`) %>%
+  reframe(
+    ISO3 = Code,
+    year = as.integer(Year),
+    pub_per_million = as.numeric(`Scientific and technical journal articles per million people`)
+  )
+```
+
 
 ## Combine the indices
 
@@ -153,14 +167,17 @@ df_freedom <- df_freedom %>% mutate(year=as.integer(year))
 df_comb <- df_oec %>%
   full_join(df_freedom, by=c("ISO3", "year")) %>%
   full_join(df_cpi, by=c("ISO3", "year")) %>%
-  full_join(df_HDI, by=c("ISO3", "year"))
+  full_join(df_HDI, by=c("ISO3", "year")) %>%
+  full_join(df_PUB, by=c("ISO3", "year"))
 ```
+
 ```{r}
 desc <- c(
   eci = "Economic Complexity Index (ECI)",
   FHI_status = "Freedom House Index - Status",
   FHI_pr = "Freedom House Index - Political Rights",
-  FHI_cl = "Freedom House Index - Civil Liberties"
+  FHI_cl = "Freedom House Index - Civil Liberties",
+  pub_per_million = "Scientific and technical publications per million people"
 )
 ```
 
