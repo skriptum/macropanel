@@ -150,16 +150,17 @@ To reproduce the dataset, run the scripts in `src` in the numbered order. You wi
 
 ### Investment
 
-| *Code*                    | *Variable*                                        | *Unit*             | *Source* |
-| ------------------------- | ------------------------------------------------- | ------------------ | -------- |
-| fdi_in_gdp                | FDI Inflows                                       | % of GDP           | WDI      |
-| gross_CF_gdp              | gross capital formation                           | % of GDP           | WDI      |
-| private_investment_gdp    | Gross fixed capital formation, private Sector     | % of GDP           | ICSD IMF |
-| government_investment_gdp | Gross fixed capital formation, general government | % of GDP           | ICSD IMF |
-| rnd_gdp                   | R&D expenditure                                   | % of GDP           | WDI WB   |
-| reseearchers_per_million  | Reseeachers in R&D                                | per million people | WDI      |
+| *Code*                    | *Variable*                                                   | *Unit*             | *Source*          |
+| ------------------------- | ------------------------------------------------------------ | ------------------ | ----------------- |
+| fdi_in_gdp                | FDI Inflows                                                  | % of GDP           | WDI               |
+| gross_CF_gdp              | gross capital formation                                      | % of GDP           | WDI               |
+| private_investment_gdp    | Gross fixed capital formation, private Sector                | % of GDP           | ICSD IMF          |
+| government_investment_gdp | Gross fixed capital formation, general government            | % of GDP           | ICSD IMF          |
+| rnd_gdp                   | R&D expenditure                                              | % of GDP           | WDI WB            |
+| researchers_per_million   | Reseeachers in R&D                                           | per million people | WDI               |
+| pub_per_million           | Annual articles published in scientific and technical journals per million people | Per million people | Our World in Data |
 
-
+Publications per Million is calculated by OWID from NSF and WDI data, read more [here](https://ourworldindata.org/grapher/scientific-publications-per-million)
 
 ### Prices
 
