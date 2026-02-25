@@ -71,9 +71,9 @@ gdp_final <- reduce(
 ```
 ```{r}
 desc <- c(
-  "gdp_usd"       = "GDP in current US dollars",
+  "gdp_usd"       = "GDP in constant US dollars",
   "gdp_growth"    = "Annual GDP growth rate in %",
-  "gdp_pc"        = "GDP per capita in current US dollars",
+  "gdp_pc"        = "GDP per capita in constant US dollars",
   "gdp_pc_growth" = "Annual GDP per capita growth rate in %"
 )
 common::labels(gdp_final) <- desc

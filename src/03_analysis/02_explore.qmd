@@ -4,6 +4,7 @@
 library(tidyverse)
 library(visdat)
 library(patchwork)
+library(skimr)
 ```
 
 ```{r}
@@ -29,17 +30,90 @@ p1
 ggsave("../../data/processed/missing_data.jpg", p1, width = 10, height = 6)
 ```
 
-## growth by Status
+## Commodity index by Status
 
 ```{r}
 df %>%
   group_by(status, year) %>%
   reframe(
-    mean_growth = mean(gdp_growth, na.rm = T),
-    median_growth = median(gdp_growth, na.rm = T),
+    mean = mean(commodity_index, na.rm = T),
   ) %>%
-  ggplot(aes(x = year, y = mean_growth, color = status)) +
-  geom_line() 
+  ggplot(aes(x = year, y = mean, color = status)) +
+  geom_line() +
+  labs(title = "Commodity Index by Status") 
+```
+```{r}
+df %>%
+  select(commodity_index) %>%
+  reframe(
+    mean = mean(commodity_index, na.rm = T),
+    median = median(commodity_index, na.rm = T),
+    min = min(commodity_index, na.rm = T),
+    max = max(commodity_index, na.rm = T)
+  )
 ```
 
+Top and Bottom 10
+```{r}
+df %>%
+  select(ISO3, year, commodity_index) %>%
+  filter(year==2010, !is.na(commodity_index)) %>%
+  arrange(desc(commodity_index)) %>%
+  slice(c(1:10, (n()-9):n())) %>%
+  # bar plot
+  ggplot(aes(x = reorder(ISO3, commodity_index), y = commodity_index)) +
+  geom_bar(stat = "identity") +
+  labs(title = "Top and Bottom Commodity Index in 2010") +
+  theme(axis.text.x = element_text(angle = 90))
+
+```
+
+Commodity Index by Region
+```{r}
+df %>%
+  filter(year %in% c(2005, 2010, 2015, 2020)) %>%
+  mutate(wesp_region = case_when(
+    wesp_region == "North America" ~ "NAME",
+    wesp_region == "Europe" ~ "EUR",
+    wesp_region == "Developed Asia and the Pacific" ~ "DASIA",
+    wesp_region == "Commonwealth of Independent States and Georgia" ~ "CIS",
+    wesp_region == "Asia" ~ "ASIA",
+    wesp_region == "Africa" ~ "AFR",
+    wesp_region == "South-Eastern Europe" ~ "SEE",
+    wesp_region == "Latin America and the Caribbean" ~ "LAC",
+    TRUE ~ wesp_region
+  )) %>%
+  group_by(wesp_region, year) %>%
+  reframe(
+    mean = mean(commodity_index, na.rm = T),
+  ) %>%
+  # bar plot with years per region on x axis
+  ggplot(aes(x = wesp_region, y = mean, fill = factor(year))) +
+  geom_bar(stat = "identity", position = "dodge") +
+  labs(title = "Commodity Index by Region and Year") +
+  theme(axis.text.x = element_text(angle = 90))
+```
+
+
+
+### Investment
+
+summary statistics in 2010 about: inv_GDP, fdi_in_gdp, gross_CF_gdp, gross_fixed_CF_private_gdp
+
+```{r}
+df %>%
+  filter(year == 2010) %>%
+  select(inv_GDP, fdi_in_gdp, gross_CF_gdp, gross_fixed_CF_gdp, gross_fixed_CF_private_gdp) %>%
+  skim() 
+```
+
+Histogram of Inv_GDP, gross_fixed_CF_gdp
+
+```{r}
+df %>%
+  filter(year == 2010) %>%
+  ggplot(aes(x = inv_GDP)) +
+  geom_histogram(bins = 30) +
+  labs(title = "Investment to GDP Ratio in 2010")
+```
 
