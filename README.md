@@ -1,29 +1,43 @@
-# Macroeconomic panel dataset
+# Large Macroeconomic Panel Data (LMPD)
 
-used for a panel analysis at the [United Nations Global Economic Monitoring Brach](https://policy.desa.un.org/about-us/global-economic-monitoring-branch)
+This repo documents the code used to create and analyze a large (macro) economic dataset, used by the [United Nations Global Economic Monitoring Brach](https://policy.desa.un.org/about-us/global-economic-monitoring-branch) in different functions. 
 
-Collects various variables, e.g:
+The dataset includes various variables, e.g:
 
 - **Macro**: GDP, output gap, ...
 - **Fiscal**: Government debt, Primary balance, ...
 - **Labor:** Productivity growth, annual hours worked, ...
 - **Inequality**: Gini, Top 10% income share, ...
 - **Trade**, **Poverty**, **Investment**, **Socioeconomic**, ...
-- full list of variables available further below
 
+*The full list including sources is described below*
 
+We also construct a country-specific commodity price influence index, inspired by [Deaton and Miller (1995)](https://econpapers.repec.org/paper/fthprinfi/79.htm) and [Collier and Goderis (2012)](https://www.sciencedirect.com/science/article/pii/S0014292112000505). For further information on the index take a look at the separate [explanation](./Commodity_Index.md).
 
-We construct a country-specific commodity price influence index, inspired by [Deaton and Miller (1995)](https://econpapers.repec.org/paper/fthprinfi/79.htm) and [Collier and Goderis (2012)](https://www.sciencedirect.com/science/article/pii/S0014292112000505). For further information on the index take a look at the [explanation](./data/02_commodity/README.md).
+Primary Responsibility for Code and Data: Marten W.
 
-## Meta
+## Repo Structure
 
-Commented repository structure
+What are the different data folders?
+
+- `raw` is for some raw files downloaded directly from different sources that did not have an API , e.g:
+  - Corruption Perception Index (Transparceny International)
+  - Human Development Index (UNDP)
+  - Productivity Data (Conference Board)
+  - Scientific Publications per million people (Our World in Data)
+  - COMTRADE Data (CEPII)
+  - GEMB World Economic Forecasting Data (UN DESA)
+- `intermediate` is meant for intermediate files created during the process of making the Commodity Index
+- `processed`: well, as the name indicates, the processed / cleaned data. That includes for each Source the respective varaibles as well as the final combined dataset in csv and dta format
+
+For most sources, the respective way to download the raw files is described in the Quarto Markdown Document in `src`.
 
 ```
 ├── 12 Panel Project.Rproj     # R Project File
 ├── README.md 
 ├── data
 │   ├── processed              # Processed Data
+│   ├── intermediate           # Intermediate data for the Commodity Index
 │   └── raw                    # Raw Data
 │       └── BACI_HS92_V202501  # BACI Trade Data
 ├── docs
@@ -35,8 +49,9 @@ Commented repository structure
 
 To reproduce the dataset, run the scripts in `src` in the numbered order. You will need to download some raw data files manually, as indicated in the respective scripts. 
 
-
 ## Variables
+
+Here, you'll find an overview of all the variables, sorted by broad category available in the final dataset (`data/processed/final_data.dta`). If you use the `.dta`file instead of the `.csv`, you also get explanations for all columns in the header. 
 
 ### Descriptive
 
@@ -92,7 +107,7 @@ To reproduce the dataset, run the scripts in `src` in the numbered order. You wi
 
 
 
-### Fiscal: Debt
+### Debt
 
 | *Code*                     | *Variable*           | *Unit*   | *Source*              |
 | -------------------------- | -------------------- | -------- | --------------------- |
@@ -156,11 +171,18 @@ To reproduce the dataset, run the scripts in `src` in the numbered order. You wi
 | gross_CF_gdp              | gross capital formation                                      | % of GDP           | WDI               |
 | private_investment_gdp    | Gross fixed capital formation, private Sector                | % of GDP           | ICSD IMF          |
 | government_investment_gdp | Gross fixed capital formation, general government            | % of GDP           | ICSD IMF          |
+
+
+
+### Innovation
+
+| *Code*                    | *Variable*                                                   | *Unit*             | *Source*          |
+| ------------------------- | ------------------------------------------------------------ | ------------------ | ----------------- |
 | rnd_gdp                   | R&D expenditure                                              | % of GDP           | WDI WB            |
 | researchers_per_million   | Reseeachers in R&D                                           | per million people | WDI               |
 | pub_per_million           | Annual articles published in scientific and technical journals per million people | Per million people | Our World in Data |
 
-Publications per Million is calculated by OWID from NSF and WDI data, read more [here](https://ourworldindata.org/grapher/scientific-publications-per-million)
+
 
 ### Prices
 
@@ -183,20 +205,20 @@ Publications per Million is calculated by OWID from NSF and WDI data, read more 
 
 ### Misc
 
-| *Code*          | *Variable*                  | *Unit*                                       | *Source*                                                     | *Availability* |
-| --------------- | --------------------------- | -------------------------------------------- | ------------------------------------------------------------ | -------------- |
-| FHI_pr          | Political Rights Index      | 1-7                                          | Freedom House                                                | Full           |
-| FHI_cl          | civil liberties index       | 1-7                                          | Freedom House                                                | Full           |
-| FHI_status      | Freedom Status              | Free (F), Partially Free (PF), Not free (NF) | Freedom House                                                | Full           |
-| eci             | Economic Complexity Index   | Ca [-3,3]                                    | OEC                                                          | 2008-2024      |
-| cpi             | Corruption Perception Index | 0 - 100                                      | Transparency International                                   | 2012-2024,     |
-| hdi             | Human Development Index     | 0 - 1                                        | UNDP                                                         |                |
-| commodity_index | Commodity Price index       |                                              | DIY, inspired by [Collier & Goderis](https://www.sciencedirect.com/science/article/pii/S0014292112000505) | 1995-2023      |
+| *Code*          | *Variable*                  | *Unit*                                       | *Source*                   | *Availability* |
+| --------------- | --------------------------- | -------------------------------------------- | -------------------------- | -------------- |
+| FHI_pr          | Political Rights Index      | 1-7                                          | Freedom House              | Full           |
+| FHI_cl          | civil liberties index       | 1-7                                          | Freedom House              | Full           |
+| FHI_status      | Freedom Status              | Free (F), Partially Free (PF), Not free (NF) | Freedom House              | Full           |
+| eci             | Economic Complexity Index   | Ca [-3,3]                                    | OEC                        | 2008-2017      |
+| cpi             | Corruption Perception Index | 0 - 100                                      | Transparency International | 2012-2024,     |
+| hdi             | Human Development Index     | 0 - 1                                        | UNDP                       |                |
+| commodity_index | Commodity Price index       |                                              | DIY                        | 1995-2023      |
 
 
 
 ## Variable availability 
 
-plot produced with `visdat`
+Overview plot produced with `visdat`:
 
 ![missing_data](./data/processed/missing_data.jpg)
