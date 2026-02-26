@@ -10,6 +10,7 @@ Downloading the dataset from [global macro database](https://www.globalmacrodata
 ```{r}
 library(tidyverse)
 library(globalmacrodata)
+library(haven)
 ```
 
 ## Data
@@ -37,7 +38,7 @@ df_f <- gmd %>%
 ## Save
 
 ```{r}
-write_csv(df_f, "../../data/processed/02_GMD.csv")
+# write_csv(df_f, "../../data/processed/02_GMD.csv")
 write_dta(df_f, "../../data/processed/02_GMD.dta")
 ```
 

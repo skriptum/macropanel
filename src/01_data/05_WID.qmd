@@ -91,6 +91,6 @@ common::labels(df_inequal) <- desc
 
 ```{r}
 write_dta(df_inequal, "../../data/processed/05_WID.dta")
-write_csv(df_inequal, "../../data/processed/05_WID.csv")
+# write_csv(df_inequal, "../../data/processed/05_WID.csv")
 ```
 

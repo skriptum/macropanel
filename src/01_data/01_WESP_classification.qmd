@@ -97,7 +97,7 @@ common::labels(df) <- desc
 
 
 ```{r}
-write_csv(df, "../../data/processed/01_WESP.csv") # for ref
+# write_csv(df, "../../data/processed/01_WESP.csv") # for ref
 write_dta(df, "../../data/processed/01_WESP.dta") # for further analysis
 ```
 

@@ -72,7 +72,7 @@ common::labels(df_clean) <- desc
 
 
 ```{r}
-write_csv(df_clean, "../../data/processed/06_Conf_Board.csv")
+# write_csv(df_clean, "../../data/processed/06_Conf_Board.csv")
 haven::write_dta(df_clean, "../../data/processed/06_Conf_Board.dta")
 ```
 

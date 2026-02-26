@@ -56,8 +56,8 @@ common::labels(df_FM) <- desc_FM
 Save it 
 
 ```{r}
-write_csv(df_FM, "../../data/processed/04_Fiscal_monitor.csv")
-write_dta(df_FM, "../../data/processed/04_Fiscal_monitor.dta")
+# write_csv(df_FM, "../../data/processed/04_Fiscal_monitor.csv")
+# write_dta(df_FM, "../../data/processed/04_Fiscal_monitor.dta")
 ```
 
 
@@ -88,7 +88,6 @@ df_PCPS <- dataset_PCPS %>%
     values_from = OBS_VALUE
   ) %>%
   reframe(
-    ISO3 = "World",
     year = TIME_PERIOD,
     food_price_index = PFOOD,
     oil_price_index = POILAPSP,
@@ -106,8 +105,8 @@ common::labels(df_PCPS) <- desc_PCPS
 
 
 ```{r}
-write_csv(df_PCPS, "../../data/processed/04_Commodity_prices.csv")
-write_dta(df_PCPS, "../../data/processed/04_Commodity_prices.dta")
+# write_csv(df_PCPS, "../../data/processed/04_Commodity_prices.csv")
+# write_dta(df_PCPS, "../../data/processed/04_Commodity_prices.dta")
 ```
 
 ## Government Investment
@@ -154,8 +153,8 @@ common::labels(df_ICSD) <- desc_ICSD
 
 
 ```{r}
-write_csv(df_ICSD, "../../data/processed/04_investment.csv")
-write_dta(df_ICSD, "../../data/processed/04_investment.dta")
+# write_csv(df_ICSD, "../../data/processed/04_investment.csv")
+# write_dta(df_ICSD, "../../data/processed/04_investment.dta")
 ```
 
 ## World Economic Outlook (WEO)
@@ -198,8 +197,8 @@ common::labels(df_WEO) <- desc_WEO
 ```
 
 ```{r}
-write_csv(df_WEO, "../../data/processed/04_WEO.csv")
-write_dta(df_WEO, "../../data/processed/04_WEO.dta")
+# write_csv(df_WEO, "../../data/processed/04_WEO.csv")
+# write_dta(df_WEO, "../../data/processed/04_WEO.dta")
 ```
 
 ## Combining all IMF data
@@ -208,10 +207,11 @@ write_dta(df_WEO, "../../data/processed/04_WEO.dta")
 imf_data <- df_FM %>%
   left_join(df_ICSD, by = c("ISO3", "year")) %>%
   left_join(df_WEO, by = c("ISO3", "year")) %>%
+  left_join(df_PCPS, by = c("year"))
 ```
 
 ```{r}
-write_csv(imf_data, "../../data/processed/04_IMF_data.csv")
+# write_csv(imf_data, "../../data/processed/04_IMF_data.csv")
 write_dta(imf_data, "../../data/processed/04_IMF_data.dta")
 ```
 

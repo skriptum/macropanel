@@ -151,7 +151,7 @@ common::labels(df_clean) <- desc
 Saving
 
 ```{r}
-write_csv(df_clean, "../../data/processed/03_WDI.csv")
+# write_csv(df_clean, "../../data/processed/03_WDI.csv")
 write_dta(df_clean, "../../data/processed/03_WDI.dta")
 ```
 

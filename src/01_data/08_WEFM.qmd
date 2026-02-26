@@ -84,7 +84,7 @@ common::labels(gdp_final) <- desc
 Save
 
 ```{r}
-write_csv(gdp_final,"../../data/processed/08_WEFM.csv")
+# write_csv(gdp_final,"../../data/processed/08_WEFM.csv")
 haven::write_dta(gdp_final,"../../data/processed/08_WEFM.dta")
 ```
 

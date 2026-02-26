@@ -76,6 +76,6 @@ df_pink <- raw_pink %>%
 ```
 
 ```{r}
-write_csv(df_pink, "../../data/processed/_01_Commodity_Prices.csv")
+write_csv(df_pink, "../../data/intermediate/01_Commodity_Prices.csv")
 ```
 

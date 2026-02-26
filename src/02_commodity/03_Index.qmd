@@ -251,8 +251,8 @@ common::labels(df_cleaned) <- desc
 ## Save 
 
 ```{r}
-write_csv(df_cleaned, "../../data/processed/_03_Index.csv")
-haven::write_dta(df_cleaned, "../../data/processed/_03_Index.dta")
+write_csv(df_cleaned, "../../data/intermediate/03_Index.csv")
+haven::write_dta(df_cleaned, "../../data/intermediate/03_Index.dta")
 ```
 
 ## Playing around

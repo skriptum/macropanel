@@ -178,7 +178,7 @@ baci_hs4_net <- map_dfr(years, function(yr) {
 Save the data
 
 ```{r}
-write_csv(baci_hs4_net, "../../data/processed/_02_Trade.csv")
+write_csv(baci_hs4_net, "../../data/intermediate/02_Trade.csv")
 ```
 
 ## Loop without netting
@@ -214,6 +214,6 @@ baci_hs4 <- map_dfr(years, function(yr) {
 ```
 
 ```{r}
-write_csv(baci_hs4, "../../data/processed/_02_Trade_total.csv")
+write_csv(baci_hs4, "../../data/intermediate/02_Trade_total.csv")
 ```
 
