@@ -9,6 +9,8 @@ library(writexl)
 
 ## Load the datasets
 
+First, the processed datasets from different sources
+
 ```{r}
 df_wesp <- read_dta("../../data/processed/01_WESP.dta")
 df_gmd <- read_dta("../../data/processed/02_GMD.dta")
@@ -20,10 +22,12 @@ df_index <- read_dta("../../data/processed/07_Misc_Ind.dta")
 df_wefm <- read_dta("../../data/processed/08_WEFM.dta")
 ```
 
+Then, our newly created Commodity Index dataset
 ```{r}
-df_comm <- read_dta("../../data/processed/_03_Index.dta")
+df_comm <- read_dta("../../data/intermediate/03_Index.dta")
 ```
 
+Make sure that all datasets have NA for missing values instead of empty strings. This is especially important for the IMF dataset, which has many missing values represented as "".
 ```{r}
 df_imf <- df_imf %>%
   # convert all "" to NA
@@ -33,6 +37,7 @@ df_imf <- df_imf %>%
 
 ## Combine the datasets
 
+Some datasets have the year variable as a character, we need to convert it to numeric before merging. 
 ```{r}
 df_gmd <- df_gmd %>% mutate(year = as.integer(year))
 df_wdi <- df_wdi %>% mutate(year = as.integer(year))
@@ -43,7 +48,7 @@ df_comm <- df_comm %>% mutate(year = as.integer(year))
 df_wefm <- df_wefm %>% mutate(year = as.integer(year))
 ```
 
-
+Where the \* Magic \*  happens
 ```{r}
 df_combined <- df_wefm %>%
   left_join(df_wesp, by = c("ISO3")) %>%
@@ -56,11 +61,11 @@ df_combined <- df_wefm %>%
   full_join(df_comm, by = c("ISO3", "year"))
 ```
 
+Make sure that countries align with our WESP countries
 ```{r}
 df_combined <- df_combined %>%
   filter(ISO3 %in% df_wesp$ISO3) 
 ```
-
 
 
 ## Save the combined dataset
@@ -72,15 +77,14 @@ write_csv(df_combined, "../../data/processed/final_data.csv")
 
 ## Excel File saving
 
-save a excel file with separate sheets for each dataset of
+For easier analysis in the Team, an excel file with separate sheets for each of
 - Productivity growth = labor_productivity_hour_growth
 - Investment over GDP = inv_GDP
 - R&D investments = rnd_gdp
 - Researchers = researchers_per_million
 - Economic complexity index = eci
 - Publications = pub_per_million
-- Patent Applications per Million = patents_total
-
+- Patent Applications per Million = patents_per_million
 
 ```{r}
 df_list <- list()

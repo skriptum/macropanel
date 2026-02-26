@@ -6,10 +6,11 @@ library(tidyverse)
 
 ## Read the Data
 
+Uncomment the third line to use total trade data instead of net exports (but then also adjust the weighting and index calculation accordingly)
 ```{r}
-df_prices <- read_csv("../../data/processed/_01_Commodity_Prices.csv")
-df_trade <- read_csv("../../data/processed/_02_Trade.csv")
-# df_trade <- read_csv("../../data/processed/_02_Trade_total.csv")
+df_prices <- read_csv("../../data/intermediate/01_Commodity_Prices.csv")
+df_trade <- read_csv("../../data/intermediate/02_Trade.csv")
+# df_trade <- read_csv("../../data/intermediate/02_Trade_total.csv")
 ```
 ## Filter trade data
 
@@ -253,79 +254,6 @@ common::labels(df_cleaned) <- desc
 ```{r}
 write_csv(df_cleaned, "../../data/intermediate/03_Index.csv")
 haven::write_dta(df_cleaned, "../../data/intermediate/03_Index.dta")
-```
-
-## Playing around
-
-```{r}
-df_analysis <- df_cleaned %>% pivot_wider(names_from = year, values_from = commodity_index)
-```
-
-```{r}
-df_analysis %>%
-  # histogram
-  ggplot(aes(x = `2013`, label= ISO3)) +
-    geom_histogram() 
-```
-
-
-## Quick Plot
-
-= Chile as a case example
-
-Why is CHL sooo high?
-- high number for price of copper (2900)
-- high weight in export (0.92)
-=> 2900^0.92 = more than 1000
-
-```{r}
-C <- "CHL"
-```
-
-
-1: Raw Index: 
-```{r}
-df_index_raw %>%
-  filter(country_iso3 == C) %>%
-  ggplot(aes(x = year, y = index)) +
-    geom_line() 
-```
-
-2: With deflating and trade volume adjustment
-```{r}
-df_index_real %>%
-  filter(country_iso3 == C) %>%
-  ggplot(aes(x = year, y = index)) +
-    geom_line() 
-```
-
-3: with GDP weighting
-
-```{r}
-df_index_gdp_weighted %>%
-  filter(country_iso3 == C) %>%
-  ggplot(aes(x = year, y = index_gdp_weighted)) +
-    geom_line()
-```
-
-
-
-```{r}
-p <- df_cleaned %>%
-  filter(
-    ISO3 %in% c(
-      # make the plot for 30 large economies
-      "USA", "CHN", "JPN", "DEU", "IND", "GBR", "FRA", "ITA", "BRA", "CAN",
-      "RUS", "KOR", "ESP", "AUS", "MEX", "IDN", "NLD", "SAU", "TUR",
-      "ARG", "SWE", "POL", "BEL", "THA", "NGA", "AUT", "IRN", "NOR", "ISR", "CHL", "BRA"
-    )
-  ) %>%
-  # filter(!ISO3 %in% c("ZMB", "QAT")) %>%
-  # filter(ISO3 == "CHL") %>%
-  ggplot(aes(x = year, y = commodity_index, color=ISO3)) +
-    geom_line() 
-
-plotly::ggplotly(p)
 ```
 
 
