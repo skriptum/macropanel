@@ -85,7 +85,7 @@ save a excel file with separate sheets for each dataset of
 ```{r}
 df_list <- list()
 
-for (var in c("labor_productivity_hour_growth", "inv_GDP", "rnd_gdp", "eci", "researchers_per_million", "patents_total", "pub_per_million")) {
+for (var in c("labor_productivity_hour_growth", "inv_GDP", "rnd_gdp", "eci", "researchers_per_million", "patents_per_million", "pub_per_million")) {
   df_var <- df_combined %>%
     select(ISO3, year, all_of(var)) %>%
     pivot_wider(names_from = year, values_from = all_of(var)) 

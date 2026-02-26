@@ -33,7 +33,6 @@ indicator_list <- c(
   "GB.XPD.RSDV.GD.ZS",  # Research and development expenditure (% of GDP)
   "SP.POP.SCIE.RD.P6",  # Researchers in R&D (per million people),
   "IP.PAT.RESD", # Patent applications, residents
-  "IP.PAT.NRES", # Patent applications, nonresidents
   # --- Poverty
   "SI.POV.MPUN", # UNDP Multidimensional poverty (% of population)
   "SI.POV.MPWB", # World Bank Multidimensional poverty  (% of population)
@@ -95,8 +94,7 @@ df_clean <- df_clean %>%
     # innovation
     rnd_gdp = GB.XPD.RSDV.GD.ZS,
     researchers_per_million = SP.POP.SCIE.RD.P6,
-    patents_residents = IP.PAT.RESD,
-    patents_nonresidents = IP.PAT.NRES,
+    patents_per_million = IP.PAT.RESD,
     # poverty
     un_multidim_pov = SI.POV.MPUN,
     wb_multidim_pov = SI.POV.MPWB,
@@ -110,8 +108,7 @@ df_clean <- df_clean %>%
     school_enrollment_primary = SE.PRM.ENRR,
     remittances_gdp = BX.TRF.PWKR.DT.GD.ZS,
     working_age_pop_pct = SP.POP.1564.TO.ZS
-    ) %>%
-  mutate(patents_total = patents_residents + patents_nonresidents) 
+    ) 
 ```
 
 add description to columns
@@ -132,9 +129,7 @@ desc <- c(
   # innovation
   rnd_gdp = "Research and development expenditure (% of GDP)",
   researchers_per_million = "Researchers in R&D (per million people)",
-  patents_residents = "Patent applications, residents",
-  patents_nonresidents = "Patent applications, nonresidents",
-  patents_total = "Patent applications, total",
+  patents_per_million = "Patent applications by residents (per million people)",
   # poverty
   un_multidim_pov = "UNDP Multidimensional poverty (% of population)",
   wb_multidim_pov = "World Bank Multidimensional poverty  (% of population)",
