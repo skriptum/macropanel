@@ -217,8 +217,15 @@ Here, you'll find an overview of all the variables, sorted by broad category ava
 
 
 
-## Variable availability 
+## Summary Statistics
 
-Overview plot produced with `visdat`:
+Overview plot (produced with `visdat`)
 
-![missing_data](./data/processed/missing_data.jpg)
+![missing_data](./missing_data.jpg)
+
+For a CSV with some summary statistics take a look at [summary_statistics.csv](./summary_statistics.csv).
+
+|                                              |                                              |
+| -------------------------------------------- | -------------------------------------------- |
+| ![summary_stats1](./docs/summary_stats1.png) | ![summary_stats2](./docs/summary_stats2.png) |
+
