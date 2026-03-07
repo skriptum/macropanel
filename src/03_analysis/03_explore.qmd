@@ -1,42 +1,11 @@
-# Exploration
+# Explore the Data a bit
 
 ```{r}
 library(tidyverse)
-library(visdat)
-library(patchwork)
-library(skimr)
 ```
 
 ```{r}
 df <- haven::read_dta("../../data/processed/final_data.dta")
-```
-
-```{r}
-colnames(df)
-```
-
-
-## Missing
-
-```{r}
-p1 <- df %>%
-  # select first 30 columns
-  vis_miss() +
-  # angle text 90 degrees
-  labs(title = "Data Availability") +
-  theme(axis.text.x = element_text(angle = 90))
-
-p1
-```
-
-
-```{r}
-ggsave("../../data/processed/missing_data.jpg", p1, width = 10, height = 6)
-```
-
-Some summary statistics about the data
-```{r}
-skim(df)
 ```
 
 
@@ -127,4 +96,5 @@ df %>%
   geom_histogram(bins = 30) +
   labs(title = "Investment to GDP Ratio in 2010")
 ```
+
 

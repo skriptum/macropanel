@@ -207,7 +207,9 @@ common::labels(df_WEO) <- desc_WEO
 imf_data <- df_FM %>%
   left_join(df_ICSD, by = c("ISO3", "year")) %>%
   left_join(df_WEO, by = c("ISO3", "year")) %>%
-  left_join(df_PCPS, by = c("year"))
+  left_join(df_PCPS, by = c("year")) %>%
+  # make numeric
+  mutate(across(c(fiscal_balance_gdp, primary_fiscal_balance_gdp, net_debt_gdp, government_investment_gdp, private_sector_investment_gdp, output_gap_pct, food_price_index, oil_price_index), as.numeric))
 ```
 
 ```{r}

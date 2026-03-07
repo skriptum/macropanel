@@ -1,0 +1,60 @@
+# Exploration
+
+```{r}
+library(tidyverse)
+library(visdat)
+library(patchwork)
+library(skimr)
+```
+
+```{r}
+df <- haven::read_dta("../../data/processed/final_data.dta")
+```
+
+## Missing
+
+```{r}
+p1 <- df %>%
+  # select first 30 columns
+  vis_miss() +
+  # angle text 90 degrees
+  labs(title = "Data Availability") +
+  theme(axis.text.x = element_text(angle = 90))
+
+p1
+```
+
+
+```{r}
+ggsave("../../missing_data.jpg", p1, width = 10, height = 6)
+```
+
+Some summary statistics about the data
+```{r}
+summary_skim <- df %>%
+  skim() %>%
+  filter(skim_type == "numeric") %>%
+  select(skim_variable, n_missing, complete_rate, numeric.mean, numeric.sd) 
+```
+
+For each variable / column the first year with data
+```{r}
+first_year_with_data <- df %>%
+  summarise(across(where(is.numeric), ~ min(year[!is.na(.)], na.rm = TRUE))) %>%
+  pivot_longer(everything(), names_to = "variable", values_to = "first_year") 
+```
+
+```{r}
+df_summary <- summary_skim %>%
+  as_tibble() %>%
+  left_join(first_year_with_data, by = c("skim_variable" = "variable"))
+
+df_summary
+```
+
+```{r}
+write_csv(df_summary, "../../summary_statistics.csv")
+```
+
+
+

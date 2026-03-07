@@ -1,10 +1,6 @@
 # Background on the Commodity price index
 
-
-
-
-
-The index is heavily inspired by [Dehn (2000)](https://ora.ox.ac.uk/objects/uuid:c42f6d43-6808-4a23-8d3b-31e1905c78f8/files/sdn39x2083) or [Collier and Goderis (2012)](https://www.sciencedirect.com/science/article/pii/S0014292112000505) and builds partly upon their approaches.  
+We construct a country-specific commodity price index to measure how changes in world market prices affect different economies depending on what they export. The idea is to combine global commodity prices into one index per country, weighting each price by that country’s net export share and scaling it by export dependence, so it captures external price shocks rather than domestic quantity changes. The index is inspired by [Dehn (2000)](https://ora.ox.ac.uk/objects/uuid:c42f6d43-6808-4a23-8d3b-31e1905c78f8/files/sdn39x2083) or [Collier and Goderis (2012)](https://www.sciencedirect.com/science/article/pii/S0014292112000505) and builds partly upon their approaches.  
 
 ### Basic Formula
 

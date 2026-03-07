@@ -27,14 +27,6 @@ Then, our newly created Commodity Index dataset
 df_comm <- read_dta("../../data/intermediate/03_Index.dta")
 ```
 
-Make sure that all datasets have NA for missing values instead of empty strings. This is especially important for the IMF dataset, which has many missing values represented as "".
-```{r}
-df_imf <- df_imf %>%
-  # convert all "" to NA
-  mutate(across(everything(), ~ na_if(., "")))
-```
-
-
 ## Combine the datasets
 
 Some datasets have the year variable as a character, we need to convert it to numeric before merging. 
@@ -75,7 +67,7 @@ write_dta(df_combined, "../../data/processed/final_data.dta")
 write_csv(df_combined, "../../data/processed/final_data.csv")
 ```
 
-## Excel File saving
+## Excel File
 
 For easier analysis in the Team, an excel file with separate sheets for each of
 - Productivity growth = labor_productivity_hour_growth

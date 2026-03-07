@@ -38,7 +38,9 @@ df_clean <- df_cb %>%
   ) %>%
   # rename years
   mutate(
-    year = as.integer(str_remove(year, "V")) + 1983
+    year = as.integer(str_remove(year, "V")) + 1983,
+    # make numeric
+    value = as.numeric(value)
   ) %>%
   # make each indicator a separate column
   pivot_wider(
